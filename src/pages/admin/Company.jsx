@@ -165,7 +165,7 @@ export default function Company() {
                   className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-square flex items-center justify-center hover:shadow-md transition-all duration-300"
                 >
                   <img
-                    src={`${BASE_URL}/${c.photoUrl}`}
+                    src={c.photoUrl}
                     alt="company logo"
                     className="w-[80%] h-[80%] object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-sm"
                   />

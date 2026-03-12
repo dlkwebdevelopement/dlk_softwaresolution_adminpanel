@@ -5,7 +5,8 @@ import {
   Check,
   X,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FolderTree
 } from "lucide-react";
 import {
   GetRequest,
@@ -263,7 +264,7 @@ export default function Categories() {
                         <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                           {c.image ? (
                             <img
-                              src={`${BASE_URL}/${c.image}`}
+                              src={c.image}
                               alt={c.category}
                               className="w-full h-full object-cover"
                             />

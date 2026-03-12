@@ -32,7 +32,8 @@ const menuItems = [
   { text: "Live Classes", icon: <Video size={20} />, path: "/liveclass" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
   { text: "FAQ", icon: <HelpCircle size={20} />, path: "/faq" },
-  { text: "Testimonial", icon: <MessageSquare size={20} />, path: "/Testimonial" },
+  { text: "Testimonial", icon: <MessageSquare size={20} />, path: "/testimonials" },
+  { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
 ];
 
 const SidebarItem = ({ icon, text, path, subItems }) => {
@@ -121,12 +122,14 @@ const Sidebar = () => {
         </div>
 
         <nav className="space-y-1 mb-8">
-          <SidebarItem 
-            icon={<Home size={20} />} 
-            text="Home" 
-            path="" 
-            subItems={menuItems} 
-          />
+          {menuItems.map((item, index) => (
+            <SidebarItem 
+              key={index}
+              icon={item.icon} 
+              text={item.text} 
+              path={item.path} 
+            />
+          ))}
           
           <div className="mt-6 mb-2 px-3 pt-4 border-t border-slate-800/50">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Management</span>
@@ -136,18 +139,12 @@ const Sidebar = () => {
             icon={<BookOpen size={20} />} 
             text="Courses" 
             path="/courses" 
-            subItems={[
-              { text: "Course Details", path: "/courses" }
-            ]} 
           />
 
           <SidebarItem 
             icon={<Contact size={20} />} 
             text="Contact" 
-            path="/contact" 
-            subItems={[
-              { text: "Contact messages", path: "/contacts" }
-            ]} 
+            path="/contacts" 
           />
         </nav>
       </div>

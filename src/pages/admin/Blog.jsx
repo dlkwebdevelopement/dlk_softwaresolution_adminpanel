@@ -318,7 +318,7 @@ export default function Blog() {
                       />
                     ) : editId ? (
                       <img
-                        src={`${BASE_URL}/${blogs.find((b) => b.id === editId)?.image}`}
+                        src={blogs.find((b) => b.id === editId)?.image}
                         alt="Current"
                         className="w-full h-full object-cover"
                       />
@@ -425,7 +425,7 @@ export default function Blog() {
               <div className="aspect-[16/9] w-full bg-slate-100 relative overflow-hidden border-b border-slate-100">
                 {blog.image ? (
                   <img
-                    src={`${BASE_URL}/${blog.image}`}
+                    src={blog.image}
                     alt={blog.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />

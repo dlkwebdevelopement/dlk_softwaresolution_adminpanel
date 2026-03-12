@@ -25,7 +25,7 @@ export const PutRequest = async (url, data) => {
 };
 
 // DELETE request
-export const DeleteRequest = async (url) => {
-  const res = await api.delete(url);
+export const DeleteRequest = async (url, config = {}) => {
+  const res = await api.delete(url, config);
   return res.data;
 };

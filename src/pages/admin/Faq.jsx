@@ -8,7 +8,7 @@ import {
   ChevronDown,
   HelpCircle,
   Plus,
-  MessageSquareQuoted
+  MessageSquare
 } from "lucide-react";
 import {
   GetRequest,
@@ -123,7 +123,7 @@ export default function Faq() {
             <hr className="border-slate-100 my-6" />
 
             <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
-              <MessageSquareQuoted className="w-5 h-5 text-brand-600" />
+              <MessageSquare className="w-5 h-5 text-brand-600" />
               Add Answer
             </h2>
             

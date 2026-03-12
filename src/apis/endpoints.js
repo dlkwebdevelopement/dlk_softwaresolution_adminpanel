@@ -76,3 +76,9 @@ export const ADMIN_POST_TESTIMONIALS = "/admin/testimonial";
 export const ADMIN_GET_ALL_TESIMONIALS = "/admin/testimonial";
 export const ADMIN_UPDATE_TESTIMONIALS = (id) => `/admin/testimonial/${id}`;
 export const ADMIN_DELETE_TESTIMONIALS = (id) => `/admin/testimonial/${id}`;
+
+// 🖼️ Gallery
+export const ADMIN_GET_GALLERY = "/admin/gallery";
+export const ADMIN_UPDATE_GALLERY = (id) => `/admin/gallery/${id}`;
+export const ADMIN_ADD_GALLERY_IMAGES = (id) => `/admin/gallery/${id}/images`;
+export const ADMIN_DELETE_GALLERY_IMAGE = (id) => `/admin/gallery/${id}/image`;

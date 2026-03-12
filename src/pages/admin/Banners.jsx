@@ -259,7 +259,7 @@ export default function Banners() {
                   className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center hover:shadow-md transition-all duration-300"
                 >
                   <img
-                    src={`${BASE_URL}/${b.photoUrl}`}
+                    src={b.photoUrl}
                     alt={b.title || "Banner"}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
