@@ -1,303 +1,165 @@
-import {
-  Box,
-  List,
-  ListItemButton,
-  ListItemText,
-  Typography,
-  Collapse,
-} from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Dashboard as DashboardIcon,
-  Category as CategoryIcon,
-  SubdirectoryArrowRight as SubcategoryIcon,
-  Photo as BannerIcon,
-  Business as CompanyIcon,
-  ContactMail as EnquiryIcon,
-  Help as FaqIcon,
-  Work as HiringIcon,
-  Home as HomeIcon,
-  ExpandLess,
-  ExpandMore,
-  ContactMailTwoTone,
-  CommentSharp,
-  LiveHelpRounded,
-  NewLabel,
-} from "@mui/icons-material";
 import { useState } from "react";
-import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import {
+  LayoutDashboard,
+  FolderTree,
+  CornerDownRight,
+  Image as ImageIcon,
+  Building2,
+  Briefcase,
+  Mail,
+  Users,
+  Video,
+  FileText,
+  HelpCircle,
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  Home,
+  BookOpen,
+  Contact
+} from "lucide-react";
 
 const menuItems = [
-  { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Categories", icon: <CategoryIcon />, path: "/categories" },
-  { text: "Subcatdegories", icon: <SubcategoryIcon />, path: "/subcategories" },
-  { text: "Banners", icon: <BannerIcon />, path: "/banners" },
-  { text: "Company", icon: <CompanyIcon />, path: "/company" },
-  { text: "Hiring Comps", icon: <HiringIcon />, path: "/hiring" },
-  { text: "Enquiries", icon: <EnquiryIcon />, path: "/enquiries" },
-  { text: "Registrations", icon: <GroupAddIcon />, path: "/register" },
-  { text: "Live Classes", icon: <LiveHelpRounded />, path: "/liveclass" },
-  { text: "Blogs", icon: <NewLabel />, path: "/blogs" },
-  { text: "FAQ", icon: <FaqIcon />, path: "/faq" },
-  { text: "Testimonial", icon: <CommentSharp />, path: "/Testimonial" },
+  { text: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
+  { text: "Categories", icon: <FolderTree size={20} />, path: "/categories" },
+  { text: "Subcategories", icon: <CornerDownRight size={20} />, path: "/subcategories" },
+  { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
+  { text: "Company", icon: <Building2 size={20} />, path: "/company" },
+  { text: "Hiring Comps", icon: <Briefcase size={20} />, path: "/hiring" },
+  { text: "Enquiries", icon: <Mail size={20} />, path: "/enquiries" },
+  { text: "Registrations", icon: <Users size={20} />, path: "/register" },
+  { text: "Live Classes", icon: <Video size={20} />, path: "/liveclass" },
+  { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
+  { text: "FAQ", icon: <HelpCircle size={20} />, path: "/faq" },
+  { text: "Testimonial", icon: <MessageSquare size={20} />, path: "/Testimonial" },
 ];
 
-const Sidebar = () => {
+const SidebarItem = ({ icon, text, path, subItems }) => {
   const location = useLocation();
-  const [open, setOpen] = useState(false);
-  const [coursesOpen, setCoursesOpen] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
-
-  const handleToggle = () => setOpen(!open);
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const isActive = location.pathname.includes(path);
+  
+  if (subItems) {
+    return (
+      <div className="mb-1">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors duration-200 group ${
+            isActive || isOpen
+              ? "bg-slate-800 text-white" 
+              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span className={`${isActive || isOpen ? "text-brand-500" : "text-slate-500 group-hover:text-brand-400"}`}>
+              {icon}
+            </span>
+            <span className="font-medium text-sm">{text}</span>
+          </div>
+          {isOpen ? <ChevronDown size={16} className="text-slate-500" /> : <ChevronRight size={16} className="text-slate-500" />}
+        </button>
+        
+        {/* Dropdown Content */}
+        {isOpen && (
+          <div className="mt-1 ml-4 pl-4 border-l border-slate-700/50 space-y-1 py-1 animate-fade-in">
+            {subItems.map((item, index) => (
+              <Link
+                key={index}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
+                  location.pathname === item.path || (item.path !== '/' && location.pathname.includes(item.path))
+                    ? "bg-brand-500/10 text-brand-400 font-medium"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                {item.icon && <span className="text-slate-500">{item.icon}</span>}
+                <span>{item.text}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <Box
-      sx={{
-        width: 250,
-        height: "100vh",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        backgroundColor: "#1e293b",
-        color: "white",
-        paddingTop: "64px",
-        boxShadow: "2px 0 8px rgba(0,0,0,0.1)",
-        zIndex: 1200,
-
-        overflowY: "auto", // ✅ Enable vertical scroll
-        overflowX: "hidden",
-        "&::-webkit-scrollbar": {
-          width: "6px",
-        },
-        "&::-webkit-scrollbar-track": {
-          background: "transparent",
-        },
-        "&::-webkit-scrollbar-thumb": {
-          backgroundColor: "rgba(255,255,255,0.2)",
-          borderRadius: "10px",
-        },
-        "&::-webkit-scrollbar-thumb:hover": {
-          backgroundColor: "rgba(255,255,255,0.3)",
-        }, // Optional (clean)
-      }}
+    <Link
+      to={path}
+      className={`flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg transition-colors duration-200 group ${
+        isActive
+          ? "bg-brand-500/10 text-brand-400 font-medium" 
+          : "text-slate-400 hover:bg-slate-800 hover:text-white"
+      }`}
     >
-      <Box sx={{ px: 2, py: 3 }}>
-        <Typography
-          variant="h6"
-          sx={{
-            color: "#94a3b8",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            mb: 1,
-          }}
-        >
-          MAIN MENU
-        </Typography>
-      </Box>
+      <span className={`${isActive ? "text-brand-500" : "text-slate-500 group-hover:text-brand-400"}`}>
+        {icon}
+      </span>
+      <span className="text-sm font-medium">{text}</span>
+    </Link>
+  );
+};
 
-      <List sx={{ px: 1 }}>
-        {/* HOME ITEM */}
-        <ListItemButton onClick={handleToggle} sx={{ mx: 1, mb: 0.5 }}>
-          <Box
-            sx={{
-              color: "inherit",
-              mr: 2,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <HomeIcon />
-          </Box>
-          <ListItemText
-            primary="Home"
-            primaryTypographyProps={{
-              fontSize: "0.875rem",
-              fontWeight: 600,
-            }}
+const Sidebar = () => {
+  return (
+    <aside className="fixed top-0 left-0 w-[250px] h-screen bg-sidebar text-white z-50 flex flex-col shadow-xl">
+      {/* Brand Header */}
+      <div className="h-[64px] min-h-[64px] flex items-center px-6 border-b border-sidebar-border bg-sidebar">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-white shadow-lg shadow-brand-500/30">
+            D
+          </div>
+          <span className="font-bold text-lg tracking-wide">DLK Admin</span>
+        </div>
+      </div>
+
+      {/* Navigation Menu */}
+      <div className="flex-1 overflow-y-auto sidebar-scroll px-3 py-6">
+        <div className="mb-2 px-3">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Main Menu</span>
+        </div>
+
+        <nav className="space-y-1 mb-8">
+          <SidebarItem 
+            icon={<Home size={20} />} 
+            text="Home" 
+            path="" 
+            subItems={menuItems} 
           />
-          {open ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
+          
+          <div className="mt-6 mb-2 px-3 pt-4 border-t border-slate-800/50">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Management</span>
+          </div>
 
-        {/* COLLAPSIBLE SUB-MENU */}
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {menuItems.map((item) => (
-              <ListItemButton
-                key={item.text}
-                component={Link}
-                to={item.path}
-                sx={{
-                  borderRadius: "8px",
-                  mx: 2,
-                  mb: 0.5,
-                  pl: 4,
-                  color: location.pathname.includes(item.path.toLowerCase())
-                    ? "#3b82f6"
-                    : "#cbd5e1",
-                  backgroundColor: location.pathname.includes(
-                    item.path.toLowerCase(),
-                  )
-                    ? "rgba(59, 130, 246, 0.1)"
-                    : "transparent",
-                  "&:hover": {
-                    backgroundColor: location.pathname.includes(
-                      item.path.toLowerCase(),
-                    )
-                      ? "rgba(59, 130, 246, 0.15)"
-                      : "rgba(255,255,255,0.05)",
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    color: "inherit",
-                    mr: 2,
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  {item.icon}
-                </Box>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: "0.875rem",
-                    fontWeight: "inherit",
-                  }}
-                />
-              </ListItemButton>
-            ))}
-          </List>
-        </Collapse>
-
-        {/* COURSES ITEM */}
-        <ListItemButton
-          onClick={() => setCoursesOpen(!coursesOpen)}
-          sx={{ mx: 1, mb: 0.5 }}
-        >
-          <Box
-            sx={{
-              color: "inherit",
-              mr: 2,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <CategoryIcon />
-          </Box>
-
-          <ListItemText
-            primary="Courses"
-            primaryTypographyProps={{
-              fontSize: "0.875rem",
-              fontWeight: 600,
-            }}
+          <SidebarItem 
+            icon={<BookOpen size={20} />} 
+            text="Courses" 
+            path="/courses" 
+            subItems={[
+              { text: "Course Details", path: "/courses" }
+            ]} 
           />
 
-          {coursesOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-
-        {/* COURSES SUBMENU */}
-        <Collapse in={coursesOpen} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/courses"
-              sx={{
-                borderRadius: "8px",
-                mx: 2,
-                mb: 0.5,
-                pl: 4,
-                color: location.pathname.includes("/courses/details")
-                  ? "#3b82f6"
-                  : "#cbd5e1",
-                backgroundColor: location.pathname.includes("/courses/details")
-                  ? "rgba(59, 130, 246, 0.1)"
-                  : "transparent",
-                "&:hover": {
-                  backgroundColor: location.pathname.includes(
-                    "/courses/details",
-                  )
-                    ? "rgba(59, 130, 246, 0.15)"
-                    : "rgba(255,255,255,0.05)",
-                },
-              }}
-            >
-              <ListItemText
-                primary="Course Details"
-                primaryTypographyProps={{
-                  fontSize: "0.875rem",
-                }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
-
-
-        {/* Contacts */}
-        <ListItemButton
-          onClick={() => setContactOpen(!contactOpen)}
-          sx={{ mx: 1, mb: 0.5 }}
-        >
-          <Box
-            sx={{
-              color: "inherit",
-              mr: 2,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <ContactMailTwoTone />
-          </Box>
-
-          <ListItemText
-            primary="Contact"
-            primaryTypographyProps={{
-              fontSize: "0.875rem",
-              fontWeight: 600,
-            }}
+          <SidebarItem 
+            icon={<Contact size={20} />} 
+            text="Contact" 
+            path="/contact" 
+            subItems={[
+              { text: "Contact messages", path: "/contacts" }
+            ]} 
           />
-
-          {contactOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-
-        {/* COURSES SUBMENU */}
-        <Collapse in={contactOpen} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/contacts"
-              sx={{
-                borderRadius: "8px",
-                mx: 2,
-                mb: 0.5,
-                pl: 4,
-                color: location.pathname.includes("/contact")
-                  ? "#3b82f6"
-                  : "#cbd5e1",
-                backgroundColor: location.pathname.includes("/contact")
-                  ? "rgba(59, 130, 246, 0.1)"
-                  : "transparent",
-                "&:hover": {
-                  backgroundColor: location.pathname.includes(
-                    "/contact",
-                  )
-                    ? "rgba(59, 130, 246, 0.15)"
-                    : "rgba(255,255,255,0.05)",
-                },
-              }}
-            >
-              <ListItemText
-                primary="Contact messages"
-                primaryTypographyProps={{
-                  fontSize: "0.875rem",
-                }}
-              />
-            </ListItemButton>
-          </List>
-        </Collapse>
-      </List>
-    </Box>
+        </nav>
+      </div>
+      
+      {/* Footer Info */}
+      <div className="p-4 border-t border-sidebar-border/50 bg-slate-900/50">
+        <div className="bg-slate-800 rounded-lg p-3 text-sm flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
+          <span className="text-slate-300 font-medium">System Online</span>
+        </div>
+      </div>
+    </aside>
   );
 };
 

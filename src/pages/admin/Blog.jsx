@@ -1,23 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-
-import {
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Box,
-  IconButton,
-  Paper,
-  TextField,
-  Stack,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
-
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { 
+  Edit2, 
+  Trash2, 
+  Loader2, 
+  Image as ImageIcon,
+  CheckCircle2,
+  AlertCircle,
+  FileText
+} from "lucide-react";
 
 import {
   ADMIN_GET_ALL_BLOGS,
@@ -123,6 +115,10 @@ export default function Blog() {
     setImage(null);
     setEditId(null);
 
+    // Also reset file input visually
+    const fileInput = document.getElementById('blog-image-upload');
+    if (fileInput) fileInput.value = '';
+
     if (editorInstance) {
       editorInstance.setData("");
     }
@@ -197,6 +193,10 @@ export default function Blog() {
     if (editorInstance) {
       editorInstance.setData("");
     }
+    
+    // Also reset file input visually
+    const fileInput = document.getElementById('blog-image-upload');
+    if (fileInput) fileInput.value = '';
 
     window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -211,6 +211,10 @@ export default function Blog() {
       if (res.success) {
         alert(res.message);
         fetchBlogs();
+        // If we are editing the deleted blog, reset the form
+        if (editId === id) {
+          resetForm();
+        }
       }
     } catch (err) {
       console.error("Delete Blog Error:", err);
@@ -218,242 +222,258 @@ export default function Blog() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", p: 2 }}>
-      <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
-        {editId ? "Edit Blog" : "Add New Blog"}
-      </Typography>
+    <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          {editId ? "Edit Blog Post" : "Add New Blog Post"}
+        </h1>
+        <p className="text-slate-500">Manage your insightful articles and news</p>
+      </div>
 
       {/* 🔹 Blog Form */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr", gap: 2 }}>
-            <TextField
-              label="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              fullWidth
-              disabled={fetchingBlog}
-            />
-            <TextField
-              label="Short Description"
-              value={shortDescription}
-              onChange={(e) => setShortDescription(e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-              disabled={fetchingBlog}
-            />
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-10">
+        <div className="p-6 md:p-8">
+          <div className="flex flex-col gap-6">
+            
+            {/* Title & Short Description */}
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Blog Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  disabled={fetchingBlog}
+                  placeholder="Enter the title of the blog post"
+                  className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                />
+              </div>
 
-            <Box>
-              <Typography sx={{ mb: 1 }}>Description</Typography>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Short Description (Excerpt)</label>
+                <textarea
+                  value={shortDescription}
+                  onChange={(e) => setShortDescription(e.target.value)}
+                  disabled={fetchingBlog}
+                  rows={3}
+                  placeholder="A brief summary that appears on the blog listing page"
+                  className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-500 resize-y"
+                />
+              </div>
+            </div>
+
+            {/* Rich Text Description */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 block">Full Content (Editor)</label>
 
               {fetchingBlog && (
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
-                >
-                  <CircularProgress size={20} />
-                  <Typography variant="caption" color="info">
-                    Loading blog content...
-                  </Typography>
-                </Box>
+                <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 mb-3">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm font-medium">Loading full blog content...</span>
+                </div>
               )}
 
               {editId && !fetchingBlog && description && (
-                <Alert severity="success" sx={{ mb: 1, py: 0 }}>
-                  Description loaded successfully!
-                </Alert>
+                <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100 mb-3">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">Content loaded successfully and ready to edit!</span>
+                </div>
               )}
 
-              <CKEditor
-                editor={ClassicEditor}
-                data={description}
-                onReady={(editor) => {
-                  console.log("CKEditor is ready to use!");
-                  setEditorInstance(editor);
+              <div className={`rounded-xl overflow-hidden border ${fetchingBlog ? 'border-slate-200 opacity-60 pointer-events-none' : 'border-slate-300'} focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-transparent transition-all`}>
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={description}
+                  onReady={(editor) => {
+                    console.log("CKEditor is ready to use!");
+                    setEditorInstance(editor);
 
-                  if (editId && description) {
-                    editor.setData(description);
-                  }
-                }}
-                onChange={(event, editor) => {
-                  const data = editor.getData();
-                  setDescription(data);
-                }}
-                disabled={fetchingBlog}
-              />
-            </Box>
-
-            <Box>
-              <Typography sx={{ mb: 1 }}>Image</Typography>
-
-              {image ? (
-                <img
-                  src={URL.createObjectURL(image)}
-                  alt="Preview"
-                  style={{
-                    width: "100%",
-                    maxHeight: 180,
-                    objectFit: "cover",
-                    borderRadius: 8,
+                    if (editId && description) {
+                      editor.setData(description);
+                    }
                   }}
-                />
-              ) : editId ? (
-                <img
-                  src={`${BASE_URL}/${blogs.find((b) => b.id === editId)?.image}`}
-                  alt="Current"
-                  style={{
-                    width: 300,
-                    maxHeight: 300,
-                    objectFit: "contain",
-                    borderRadius: 8,
+                  onChange={(event, editor) => {
+                    const data = editor.getData();
+                    setDescription(data);
                   }}
+                  disabled={fetchingBlog}
                 />
-              ) : null}
+              </div>
+            </div>
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImage(e.target.files[0])}
-                style={{ marginTop: 5 }}
-                disabled={fetchingBlog}
-              />
-            </Box>
-          </Box>
+            {/* Image Upload */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-slate-700 block">Featured Image</label>
 
-          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleSubmit}
-              sx={{ height: 50 }}
-              disabled={fetchingBlog}
-            >
-              {fetchingBlog ? (
-                <CircularProgress size={24} />
-              ) : editId ? (
-                "Update Blog"
-              ) : (
-                "Create Blog"
-              )}
-            </Button>
-            {editId && (
-              <Button
-                fullWidth
-                variant="outlined"
-                color="secondary"
-                onClick={resetForm}
-                sx={{ height: 50 }}
+              <div className={`p-5 rounded-xl border-2 border-dashed ${image ? 'border-brand-300 bg-brand-50/30' : 'border-slate-300 bg-slate-50'}`}>
+                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                  
+                  {/* Preview Area */}
+                  <div className="w-full sm:w-64 h-40 rounded-lg border border-slate-200 bg-white overflow-hidden flex items-center justify-center shrink-0">
+                    {image ? (
+                      <img
+                        src={URL.createObjectURL(image)}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : editId ? (
+                      <img
+                        src={`${BASE_URL}/${blogs.find((b) => b.id === editId)?.image}`}
+                        alt="Current"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center text-slate-400">
+                        <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                        <span className="text-xs uppercase font-medium tracking-wider">No Image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Controls Area */}
+                  <div className="flex-1 space-y-3">
+                    {editId && !image && (
+                      <p className="text-sm text-slate-500 mb-2">
+                        Current image is shown. Upload a new one below to replace it.
+                      </p>
+                    )}
+                    
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="blog-image-upload"
+                        onChange={(e) => setImage(e.target.files[0])}
+                        disabled={fetchingBlog}
+                        className="block w-full text-sm text-slate-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-brand-50 file:text-brand-700
+                          hover:file:bg-brand-100
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          transition-colors"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-400 pt-1">
+                      Recommended aspect ratio 16:9. Max size 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr className="border-slate-100 my-2" />
+
+            {/* Form Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                onClick={handleSubmit}
                 disabled={fetchingBlog}
+                className="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Cancel
-              </Button>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
+                {fetchingBlog ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                ) : editId ? (
+                  <><Edit2 className="w-5 h-5" /> Update Blog Post</>
+                ) : (
+                  <><FileText className="w-5 h-5" /> Publish Blog Post</>
+                )}
+              </button>
+              
+              {editId && (
+                <button
+                  onClick={resetForm}
+                  disabled={fetchingBlog}
+                  className="px-6 py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </div>
 
       {/* 🔹 Blog List */}
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Blog List ({blogs.length})
-      </Typography>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="text-xl font-bold text-slate-900">Manage Published Blogs</h2>
+        <span className="bg-brand-100 text-brand-700 px-3 py-1 rounded-full text-sm font-semibold">
+          {blogs.length} Total
+        </span>
+      </div>
 
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-          <CircularProgress />
-        </Box>
+        <div className="flex justify-center items-center p-12 bg-white rounded-xl border border-slate-200 border-dashed">
+          <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+        </div>
+      ) : blogs.length === 0 ? (
+        <div className="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-12 flex flex-col items-center justify-center text-center">
+          <FileText className="w-16 h-16 text-slate-300 mb-4" />
+          <h3 className="text-slate-700 font-medium text-lg mb-1">No blogs assigned yet</h3>
+          <p className="text-slate-500 text-sm">Create your first blog post using the form above</p>
+        </div>
       ) : (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: 3,
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {blogs.map((blog) => (
-            <Paper
+            <div
               key={blog.id}
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: "14px",
-                border: "1px solid #e5e7eb",
-                backgroundColor: "#ffffff",
-                position: "relative",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-                  transform: "translateY(-2px)",
-                },
-              }}
+              className={`bg-white rounded-xl border transition-all duration-300 hover:shadow-lg flex flex-col overflow-hidden group ${editId === blog.id ? 'border-brand-500 ring-2 ring-brand-100' : 'border-slate-200 hover:border-brand-200'}`}
             >
-              <Typography fontWeight={700} sx={{ fontSize: "1.2rem", mb: 1 }}>
-                {blog.title}
-              </Typography>
-              <Typography sx={{ mb: 1, color: "#475569" }}>
-                {blog.short_description}
-              </Typography>
-
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ mb: 1, color: "text.secondary" }}
-              >
-                Slug: {blog.slug}
-              </Typography>
-
-              {blog.image && (
-                <Box sx={{ mb: 1 }}>
+              {/* Image Header */}
+              <div className="aspect-[16/9] w-full bg-slate-100 relative overflow-hidden border-b border-slate-100">
+                {blog.image ? (
                   <img
                     src={`${BASE_URL}/${blog.image}`}
                     alt={blog.title}
-                    style={{
-                      width: "100%",
-                      maxHeight: 180,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                    }}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                </Box>
-              )}
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-medium text-slate-400 bg-slate-50">
+                    <ImageIcon className="w-10 h-10 opacity-20" />
+                  </div>
+                )}
+                
+                {/* Action Buttons overlay */}
+                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={() => handleEdit(blog)}
+                    disabled={fetchingBlog}
+                    className="p-2 bg-white/90 backdrop-blur text-brand-600 hover:text-brand-700 hover:bg-brand-50 rounded-lg shadow-sm transition-colors border border-brand-100 disabled:opacity-50"
+                    title="Edit Blog"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(blog.id)}
+                    disabled={fetchingBlog}
+                    className="p-2 bg-white/90 backdrop-blur text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg shadow-sm transition-colors border border-red-100 disabled:opacity-50"
+                    title="Delete Blog"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-              <Stack
-                direction="row"
-                spacing={1}
-                sx={{ position: "absolute", top: 12, right: 12 }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => handleEdit(blog)}
-                  disabled={fetchingBlog}
-                  sx={{
-                    border: "1px solid #c7d2fe",
-                    color: "#4338ca",
-                    backgroundColor: "#eef2ff",
-                    "&:hover": { backgroundColor: "#e0e7ff" },
-                    "&.Mui-disabled": { opacity: 0.5 },
-                  }}
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDelete(blog.id)}
-                  disabled={fetchingBlog}
-                  sx={{
-                    border: "1px solid #fecaca",
-                    color: "#b91c1c",
-                    backgroundColor: "#fef2f2",
-                    "&:hover": { backgroundColor: "#fee2e2" },
-                    "&.Mui-disabled": { opacity: 0.5 },
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Stack>
-            </Paper>
+              {/* Content Body */}
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-2 leading-tight group-hover:text-brand-600 transition-colors">
+                  {blog.title}
+                </h3>
+                
+                <p className="text-sm text-slate-600 mb-4 line-clamp-3">
+                  {blog.short_description}
+                </p>
+
+                <div className="mt-auto pt-4 border-t border-slate-100 text-xs font-mono text-slate-400 truncate" title={blog.slug}>
+                  /{blog.slug}
+                </div>
+              </div>
+            </div>
           ))}
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

@@ -1,19 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import {
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  IconButton,
-  Paper,
-  Alert,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  Upload,
+  Image as ImageIcon
+} from "lucide-react";
 import {
   GetRequest,
   PostRequest,
@@ -126,238 +119,190 @@ export default function Categories() {
   };
 
   return (
-    <Box sx={{ mx: "auto" }}>
-      <Typography
-        variant="h4"
-        sx={{ mb: 1, fontWeight: 700, color: "#1e293b" }}
-      >
-        Navbar Categories
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 4, color: "#64748b" }}>
-        Manage your website categories and their images
-      </Typography>
+    <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Navbar Categories</h1>
+        <p className="text-slate-500">Manage your website categories and their images</p>
+      </div>
 
       {/* Add New Category */}
-      <Card
-        sx={{
-          mb: 4,
-          boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-          border: "1px solid #e2e8f0",
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Add New Category
-          </Typography>
-          <Box
-            sx={{ display: "grid", gridTemplateColumns: "1fr", gap: 2, mb: 2 }}
-          >
-            <TextField
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-8 overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6">Add New Category</h2>
+          <div className="grid grid-cols-1 gap-5">
+            <input
+              type="text"
               placeholder="Category Name"
               value={val}
               onChange={(e) => setVal(e.target.value)}
-              fullWidth
+              className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
             />
-            <TextField
+            <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multiline
               rows={3}
+              className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all resize-y"
             />
 
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 2,
-                textAlign: "center",
-                border: "2px dashed #cbd5e1",
-                backgroundColor: "#f8fafc",
-              }}
-            >
+            <div className="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-6 text-center hover:bg-slate-100 transition-colors">
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 accept="image/*"
-                style={{ display: "none" }}
+                className="hidden"
                 id="category-upload"
               />
-
-              <label htmlFor="category-upload">
-                <Button variant="outlined" component="span">
-                  Choose Image
-                </Button>
+              <label 
+                htmlFor="category-upload"
+                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+              >
+                <Upload className="w-4 h-4 text-slate-500" />
+                Choose Image
               </label>
+              
               {file && (
-                <Alert severity="success" sx={{ mt: 1 }}>
+                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium border border-emerald-100">
+                  <Check className="w-4 h-4" />
                   Selected: {file.name}
-                </Alert>
+                </div>
               )}
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                PNG, JPG, WEBP up to 5MB
-              </Typography>
-            </Paper>
-            <Button
-              variant="contained"
+              <p className="text-xs text-slate-500 mt-3">PNG, JPG, WEBP up to 5MB</p>
+            </div>
+            
+            <button
               onClick={addCategory}
               disabled={!val.trim()}
-              fullWidth
+              className="w-full bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-sm"
             >
               Add Category
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Category List */}
-      <Card
-        sx={{
-          boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-          border: "1px solid #e2e8f0",
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 3 }}>
-            Categories ({list.length})
-          </Typography>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            Categories <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full text-sm font-medium">{list.length}</span>
+          </h2>
+          
           {list.length === 0 ? (
-            <Paper
-              sx={{ p: 4, textAlign: "center", backgroundColor: "#f8fafc" }}
-            >
-              <Typography variant="h6" color="text.secondary">
-                No categories found
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Add your first category to get started
-              </Typography>
-            </Paper>
+            <div className="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center">
+              <FolderTree className="w-12 h-12 text-slate-300 mb-3" />
+              <h3 className="text-slate-700 font-medium text-lg mb-1">No categories found</h3>
+              <p className="text-slate-500 text-sm">Add your first category using the form above to get started</p>
+            </div>
           ) : (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                gap: 3,
-              }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {list.map((c) => (
-                <Paper
+                <div
                   key={c.id}
-                  elevation={1}
-                  sx={{
-                    position: "relative",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    p: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1,
-                    transition: "all 0.2s ease-in-out",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    },
-                  }}
+                  className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col group relative"
                 >
                   {editingId === c.id ? (
-                    <>
-                      <TextField
+                    <div className="space-y-3">
+                      <input
+                        type="text"
                         value={editVal}
                         onChange={(e) => setEditVal(e.target.value)}
-                        size="small"
-                        fullWidth
+                        className="w-full rounded-md border-slate-300 border px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
                       />
-                      <TextField
+                      <textarea
                         value={editDescription}
                         onChange={(e) => setEditDescription(e.target.value)}
-                        size="small"
-                        fullWidth
-                        multiline
                         rows={2}
+                        className="w-full rounded-md border-slate-300 border px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
                       />
 
-                      <input
-                        type="file"
-                        ref={editFileInputRef}
-                        onChange={(e) =>
-                          setEditFile(e.target.files?.[0] || null)
-                        }
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        id={`edit-upload-${c.id}`}
-                      />
-                      <label htmlFor={`edit-upload-${c.id}`}>
-                        <Button
-                          variant="outlined"
-                          component="span"
-                          sx={{ mt: 1 }}
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          ref={editFileInputRef}
+                          onChange={(e) => setEditFile(e.target.files?.[0] || null)}
+                          accept="image/*"
+                          className="hidden"
+                          id={`edit-upload-${c.id}`}
+                        />
+                        <label 
+                          htmlFor={`edit-upload-${c.id}`}
+                          className="cursor-pointer inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-md text-sm font-medium transition-colors w-full"
                         >
-                          Choose Image
-                        </Button>
-                      </label>
-                      {editFile && (
-                        <Alert severity="success">
-                          Selected: {editFile.name}
-                        </Alert>
-                      )}
-                      <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                        <IconButton
-                          color="success"
+                          <Upload className="w-3.5 h-3.5" />
+                          Change Image
+                        </label>
+                        
+                        {editFile && (
+                          <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs truncate border border-emerald-100">
+                            <Check className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{editFile.name}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                        <button
                           onClick={() => saveEdit(c.id)}
+                          className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-brand-100 text-brand-700 hover:bg-brand-200 rounded-md text-sm font-medium transition-colors"
                         >
-                          <CheckIcon />
-                        </IconButton>
-                        <IconButton color="error" onClick={cancelEdit}>
-                          <CloseIcon />
-                        </IconButton>
-                      </Box>
-                    </>
+                          <Check className="w-4 h-4" /> Save
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium transition-colors"
+                        >
+                          <X className="w-4 h-4" /> Cancel
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        {c.image && (
-                          <img
-                            src={`${BASE_URL}/${c.image}`}
-                            alt={c.category}
-                            style={{
-                              width: 50,
-                              height: 50,
-                              objectFit: "cover",
-                              borderRadius: 4,
-                            }}
-                          />
-                        )}
-                        <Typography sx={{ fontWeight: 500 }}>
-                          {c.category}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton
-                          onClick={() =>
-                            startEdit(c.id, c.category, c.description)
-                          }
-                          size="small"
+                      <div className="flex items-start gap-4 mb-4 flex-1">
+                        <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {c.image ? (
+                            <img
+                              src={`${BASE_URL}/${c.image}`}
+                              alt={c.category}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <h3 className="font-semibold text-slate-900 text-base truncate pr-8" title={c.category}>
+                            {c.category}
+                          </h3>
+                        </div>
+                      </div>
+                      
+                      {/* Action buttons appear on hover in top right corner */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm rounded-lg p-1 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] border border-slate-100">
+                        <button
+                          onClick={() => startEdit(c.id, c.category, c.description)}
+                          className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
+                          title="Edit Category"
                         >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => removeCategory(c.id)}
-                          size="small"
+                          className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                          title="Delete Category"
                         >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </>
                   )}
-                </Paper>
+                </div>
               ))}
-            </Box>
+            </div>
           )}
-        </CardContent>
-      </Card>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }

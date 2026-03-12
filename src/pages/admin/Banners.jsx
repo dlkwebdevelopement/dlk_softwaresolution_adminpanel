@@ -1,19 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Button, 
-  Box, 
-  IconButton,
-  Paper,
-  Alert,
-  TextField
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+  UploadCloud, 
+  Image as ImageIcon, 
+  Trash2, 
+  CheckCircle2, 
+  X
+} from "lucide-react";
 import { GetRequest, PostRequest, DeleteRequest } from "../../apis/config";
 import { ADMIN_UPLOAD_BANNER, ADMIN_DELETE_BANNER, ADMIN_GET_BANNERS } from "../../apis/endpoints";
-import { CloudUploadOutlined, PhotoLibraryOutlined } from "@mui/icons-material";
 import { BASE_URL } from "../../apis/api";
 
 export default function Banners() {
@@ -86,163 +80,220 @@ export default function Banners() {
     }
   };
 
+  const clearFile = (e) => {
+    e.preventDefault();
+    setFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
-      <Typography variant="h4" sx={{ mb: 1, fontWeight: 700, color: "#1e293b" }}>
-        Banner Management
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 4, color: "#64748b" }}>
-        Manage your website banners and promotional images
-      </Typography>
+    <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Banner Management</h1>
+        <p className="text-slate-500">Manage your website banners and promotional hero sections</p>
+      </div>
 
-      <Card sx={{ mb: 4, boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #e2e8f0" }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-            <CloudUploadOutlined color="primary" />
+      {/* Upload Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-8 overflow-hidden">
+        <div className="p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            <UploadCloud className="w-5 h-5 text-brand-600" />
             Upload New Banner
-          </Typography>
+          </h2>
 
-          {/* 🔹 Banner Text Fields */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mb: 3 }}>
-            <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <TextField label="Highlight" value={highlight} onChange={(e) => setHighlight(e.target.value)} />
-            <TextField label="Subtitle" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
-            <TextField label="Tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} />
-            <TextField
-              label="Button Text"
-              value={buttonText}
-              onChange={(e) => setButtonText(e.target.value)}
-            />
-            <TextField
-              label="Description"
-              multiline
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </Box>
+          {/* Banner Text Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Title</label>
+              <input 
+                type="text" 
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Master Advanced Skills"
+                className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Highlight Text (Colored)</label>
+              <input 
+                type="text" 
+                value={highlight} 
+                onChange={(e) => setHighlight(e.target.value)}
+                placeholder="e.g. 10x Faster"
+                className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Subtitle</label>
+              <input 
+                type="text" 
+                value={subtitle} 
+                onChange={(e) => setSubtitle(e.target.value)}
+                placeholder="e.g. with Industry Experts"
+                className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Tagline (Top small text)</label>
+              <input 
+                type="text" 
+                value={tagline} 
+                onChange={(e) => setTagline(e.target.value)}
+                placeholder="e.g. ★ 4.9/5 Rating"
+                className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Button Text</label>
+              <input 
+                type="text" 
+                value={buttonText} 
+                onChange={(e) => setButtonText(e.target.value)}
+                placeholder="e.g. Start Learning Now"
+                className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+              />
+            </div>
+            
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-sm font-medium text-slate-700">Description</label>
+              <textarea 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter a brief description to appear below the main heading..."
+                rows={3}
+                className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white resize-y"
+              />
+            </div>
+          </div>
 
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 3,
-              textAlign: "center",
-              border: "2px dashed #cbd5e1",
-              backgroundColor: "#f8fafc",
-              mb: 2
-            }}
-          >
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              style={{ display: "none" }}
-              id="banner-upload"
-            />
-            <label htmlFor="banner-upload">
-              <Button
-                variant="outlined"
-                component="span"
-                startIcon={<CloudUploadOutlined />}
-                sx={{ mb: 1 }}
-              >
-                Choose File
-              </Button>
-            </label>
-            {file && (
-              <Alert severity="success" sx={{ mt: 1 }}>
-                Selected: {file.name}
-              </Alert>
-            )}
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              PNG, JPG, WEBP up to 10MB
-            </Typography>
-          </Paper>
+          <div className="mb-6">
+            <label className="text-sm font-medium text-slate-700 block mb-1.5">Banner Image</label>
+            <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${file ? 'border-brand-300 bg-brand-50/30' : 'border-slate-300 bg-slate-50 hover:bg-slate-100/50'}`}>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="hidden"
+                id="banner-upload"
+              />
+              
+              {!file ? (
+                <div className="flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 border border-slate-100">
+                    <ImageIcon className="w-8 h-8 text-brand-500" />
+                  </div>
+                  <label htmlFor="banner-upload" className="cursor-pointer">
+                    <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50 transition-all shadow-sm">
+                      <UploadCloud className="w-4 h-4" />
+                      Browse Files
+                    </span>
+                  </label>
+                  <p className="text-xs text-slate-500 mt-4">
+                    Recommended size: 1920x1080px (PNG, JPG, WEBP up to 10MB)
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-lg border border-emerald-200 shadow-sm mb-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-slate-900 truncate max-w-[200px] sm:max-w-xs">{file.name}</p>
+                      <p className="text-xs text-emerald-600 font-medium">Ready to upload</p>
+                    </div>
+                    <button 
+                      onClick={clearFile}
+                      className="ml-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                      title="Remove file"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <label htmlFor="banner-upload" className="cursor-pointer">
+                    <span className="text-sm text-brand-600 font-medium hover:underline">Choose a different image</span>
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
 
-          <Button
-            variant="contained"
+          <button
             onClick={upload}
             disabled={!file}
-            fullWidth
-            sx={{ py: 1.5 }}
+            className="w-full sm:w-auto px-8 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2"
           >
+            <UploadCloud className="w-5 h-5" />
             Upload Banner
-          </Button>
-        </CardContent>
-      </Card>
+          </button>
+        </div>
+      </div>
 
-      <Card sx={{ boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #e2e8f0" }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 3, display: "flex", alignItems: "center", gap: 1 }}>
-            <PhotoLibraryOutlined color="primary" />
-            Banner Gallery ({list.length})
-          </Typography>
+      {/* Gallery Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-brand-600" />
+            Banner Gallery 
+            <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full text-sm font-medium ml-1">
+              {list.length}
+            </span>
+          </h2>
 
           {list.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: "center", backgroundColor: "#f8fafc" }}>
-              <PhotoLibraryOutlined sx={{ fontSize: 48, color: "#cbd5e1", mb: 2 }} />
-              <Typography variant="h6" color="text.secondary">
-                No banners uploaded yet
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Upload your first banner to get started
-              </Typography>
-            </Paper>
+            <div className="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-12 flex flex-col items-center justify-center text-center">
+              <ImageIcon className="w-16 h-16 text-slate-300 mb-4" />
+              <h3 className="text-slate-700 font-medium text-lg mb-1">No banners uploaded yet</h3>
+              <p className="text-slate-500 text-sm">Upload your first banner using the form above</p>
+            </div>
           ) : (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                gap: 3,
-              }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {list.map((b) => (
-                <Paper
+                <div
                   key={b.id}
-                  elevation={1}
-                  sx={{
-                    position: "relative",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    transition: "all 0.2s ease-in-out",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    },
-                  }}
+                  className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center hover:shadow-md transition-all duration-300"
                 >
                   <img
                     src={`${BASE_URL}/${b.photoUrl}`}
-                    alt="banner"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      display: "block",
-                    }}
+                    alt={b.title || "Banner"}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <IconButton
+                  
+                  {/* Overlay on hover */}
+                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4">
+                    {b.title && (
+                      <p className="text-white font-medium text-center text-sm mb-3 line-clamp-2">
+                        {b.title}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => remove(b.id)}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </div>
+                  
+                  {/* Always visible delete button on top right for mobile/quick access */}
+                  <button
                     onClick={() => remove(b.id)}
-                    sx={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      backgroundColor: "rgba(239, 68, 68, 0.9)",
-                      color: "white",
-                      "&:hover": {
-                        backgroundColor: "#dc2626",
-                      },
-                    }}
+                    className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-red-50 text-slate-600 hover:text-red-500 rounded-lg shadow-sm backdrop-blur-sm transition-colors md:opacity-0 group-hover:opacity-100"
+                    title="Delete Banner"
                   >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Paper>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               ))}
-            </Box>
+            </div>
           )}
-        </CardContent>
-      </Card>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }

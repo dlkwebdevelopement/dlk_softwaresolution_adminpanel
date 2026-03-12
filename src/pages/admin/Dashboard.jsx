@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; 
-import { Card, CardContent, Typography, Grid, Box } from "@mui/material";
 import { GetRequest } from "../../apis/config";
 import { 
   ADMIN_GET_CATEGORIES, 
@@ -9,57 +8,33 @@ import {
   ADMIN_GET_ALL_QUESTIONS 
 } from "../../apis/endpoints";
 import {
-  Category as CategoryIcon,
-  SubdirectoryArrowRight as SubcategoryIcon,
-  ContactMail as EnquiryIcon,
-  Help as FaqIcon,
-  TrendingUp as TrendingUpIcon
-} from "@mui/icons-material";
+  FolderTree,
+  CornerDownRight,
+  Mail,
+  HelpCircle,
+  TrendingUp,
+  Plus,
+  Image as ImageIcon,
+  MessageSquare,
+  Edit
+} from "lucide-react";
 
-const StatCard = ({ title, count, icon, color }) => (
-  <Card sx={{ 
-    height: "100%", 
-    width: 200,
-    boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
-    border: "1px solid #e2e8f0",
-    transition: "all 0.2s ease-in-out",
-    "&:hover": {
-      transform: "translateY(-2px)",
-      boxShadow: "0 8px 25px rgba(0,0,0,0.1)",
-    }
-  }}>
-    <CardContent sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-        <Box>
-          <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-            {title}
-          </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: "#1e293b" }}>
-            {count}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            p: 1,
-            borderRadius: "8px",
-            backgroundColor: `${color}.50`,
-            color: `${color}.500`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {icon}
-        </Box>
-      </Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-        <TrendingUpIcon sx={{ fontSize: 16, color: "#10b981" }} />
-        <Typography variant="body2" sx={{ color: "#10b981", fontWeight: 600 }}>
-          Active
-        </Typography>
-      </Box>
-    </CardContent>
-  </Card>
+const StatCard = ({ title, count, icon, colorClass, iconClass }) => (
+  <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex flex-col h-full">
+    <div className="flex justify-between items-start mb-4">
+      <div>
+        <h3 className="text-slate-500 text-sm font-semibold mb-1">{title}</h3>
+        <p className="text-slate-900 text-3xl font-bold">{count}</p>
+      </div>
+      <div className={`p-3 rounded-xl ${colorClass}`}>
+        {icon}
+      </div>
+    </div>
+    <div className="mt-auto flex items-center gap-1.5">
+      <TrendingUp className="w-4 h-4 text-emerald-500" />
+      <span className="text-emerald-500 text-sm font-semibold">Active</span>
+    </div>
+  </div>
 );
 
 export default function Dashboard() {
@@ -94,67 +69,63 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
-      <Typography variant="h4" sx={{ mb: 1, fontWeight: 700, color: "#1e293b" }}>
-        Dashboard Overview
-      </Typography>
-      <Typography variant="body1" sx={{ mb: 4, color: "#64748b" }}>
-        Welcome back! Here's what's happening with your store today.
-      </Typography>
+    <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Dashboard Overview</h1>
+        <p className="text-slate-500">Welcome back! Here's what's happening with your store today.</p>
+      </div>
 
       {/* Stats cards */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Categories" count={counts.cats} icon={<CategoryIcon />}/>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Subcategories" count={counts.subs} icon={<SubcategoryIcon />}  />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Enquiries" count={counts.enquiries} icon={<EnquiryIcon />}/>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="FAQ Items" count={counts.faqs} icon={<FaqIcon />}  />
-        </Grid>
-      </Grid>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard 
+          title="Categories" 
+          count={counts.cats} 
+          icon={<FolderTree className="h-6 w-6 text-blue-600" />}
+          colorClass="bg-blue-50"
+        />
+        <StatCard 
+          title="Subcategories" 
+          count={counts.subs} 
+          icon={<CornerDownRight className="h-6 w-6 text-purple-600" />}  
+          colorClass="bg-purple-50"
+        />
+        <StatCard 
+          title="Enquiries" 
+          count={counts.enquiries} 
+          icon={<Mail className="h-6 w-6 text-amber-600" />}
+          colorClass="bg-amber-50"
+        />
+        <StatCard 
+          title="FAQ Items" 
+          count={counts.faqs} 
+          icon={<HelpCircle className="h-6 w-6 text-emerald-600" />}  
+          colorClass="bg-emerald-50"
+        />
+      </div>
 
       {/* Quick actions */}
-      <Card sx={{ mt: 4, boxShadow: "0 4px 6px rgba(0,0,0,0.05)", border: "1px solid #e2e8f0" }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2, color: "#1e293b" }}>
-            Quick Actions
-          </Typography>
-          <Grid container spacing={2}>
-            {[
-              { label: "Add Category", path: "/categories" },
-              { label: "Manage Banners", path: "/banners" },
-              { label: "View Enquiries", path: "/enquiries" },
-              { label: "Update FAQ", path: "/faq" },
-            ].map((action, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card
-                  variant="outlined"
-                  sx={{
-                    p: 2,
-                    textAlign: "center",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease-in-out",
-                    "&:hover": {
-                      backgroundColor: "#f8fafc",
-                      borderColor: "#3b82f6",
-                    },
-                  }}
-                  onClick={() => navigate(action.path)}
-                >
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {action.label}
-                  </Typography>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </CardContent>
-      </Card>
-    </Box>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <span>Quick Actions</span>
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Add Category", path: "/categories", icon: <Plus className="w-5 h-5 mb-2 text-blue-500" /> },
+            { label: "Manage Banners", path: "/banners", icon: <ImageIcon className="w-5 h-5 mb-2 text-purple-500" /> },
+            { label: "View Enquiries", path: "/enquiries", icon: <MessageSquare className="w-5 h-5 mb-2 text-amber-500" /> },
+            { label: "Update FAQ", path: "/faq", icon: <Edit className="w-5 h-5 mb-2 text-emerald-500" /> },
+          ].map((action, index) => (
+            <button
+              key={index}
+              onClick={() => navigate(action.path)}
+              className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 transition-all duration-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            >
+              {action.icon}
+              <span className="text-sm font-semibold">{action.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
