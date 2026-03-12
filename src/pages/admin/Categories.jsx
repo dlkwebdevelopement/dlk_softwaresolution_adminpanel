@@ -50,7 +50,7 @@ export default function Categories() {
   const addCategory = async () => {
     if (!val.trim()) return;
     const formData = new FormData();
-    formData.append("category", val.trim());
+    formData.append("categoryName", val.trim());
     formData.append("description", description.trim());
 
     if (file) formData.append("image", file);
@@ -90,7 +90,7 @@ export default function Categories() {
   const saveEdit = async (id) => {
     if (!editVal.trim()) return;
     const formData = new FormData();
-    formData.append("category", editVal.trim());
+    formData.append("categoryName", editVal.trim());
     formData.append("description", editDescription.trim());
 
     if (editFile) formData.append("image", editFile);
@@ -265,7 +265,7 @@ export default function Categories() {
                           {c.image ? (
                             <img
                               src={c.image}
-                              alt={c.category}
+                              alt={c.categoryName}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -273,8 +273,8 @@ export default function Categories() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0 pt-0.5">
-                          <h3 className="font-semibold text-slate-900 text-base truncate pr-8" title={c.category}>
-                            {c.category}
+                          <h3 className="font-semibold text-slate-900 text-base truncate pr-8" title={c.categoryName}>
+                            {c.categoryName}
                           </h3>
                         </div>
                       </div>
@@ -282,7 +282,7 @@ export default function Categories() {
                       {/* Action buttons appear on hover in top right corner */}
                       <div className="absolute top-3 right-3 flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm rounded-lg p-1 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.1)] border border-slate-100">
                         <button
-                          onClick={() => startEdit(c.id, c.category, c.description)}
+                          onClick={() => startEdit(c.id, c.categoryName, c.description)}
                           className="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
                           title="Edit Category"
                         >

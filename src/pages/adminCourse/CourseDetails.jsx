@@ -12,7 +12,11 @@ import {
   Save,
   X,
   FileUp,
-  ExternalLink
+  ExternalLink,
+  Search,
+  Filter,
+  Eye,
+  PlusCircle
 } from "lucide-react";
 
 import {
@@ -60,6 +64,9 @@ export default function CourseDetails() {
   const [syllabusPdf, setSyllabusPdf] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(initialState);
+  const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   // ================= FETCH =================
   const fetchCategories = async () => {
@@ -153,14 +160,15 @@ export default function CourseDetails() {
         price: data.price || "",
         original_price: data.original_price || "",
         discount_percentage: data.discount_percentage || "",
-        thumbnail_url: data.thumbnail ? `${BASE_URL}/uploads/${data.thumbnail}` : null,
-        syllabus_pdf_url: data.syllabus_pdf ? `${BASE_URL}/uploads/${data.syllabus_pdf}` : null,
+        thumbnail_url: data.thumbnail || null,
+        syllabus_pdf_url: data.syllabus_pdf || null,
        
         whoShouldEnroll: data.whoShouldEnroll || [{ content: "", order_index: 0 }],
         learningPoints: data.learningPoints || [{ content: "", order_index: 0 }],
         curriculum: data.curriculum || [{ title: "", order_index: 0 }],
       });
 
+      setShowForm(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       alert("Failed to load course");
@@ -208,11 +216,13 @@ export default function CourseDetails() {
       await PostRequest(ADMIN_POST_COURSES, sendData, true);
       await fetchAllCourses();
 
-      alert("Course Created Successfully");
+  alert("Course Created Successfully");
       setFormData(initialState);
       setThumbnail(null);
       setCourseId(null);
       setSyllabusPdf(null);
+      setLoading(false);
+      setShowForm(false);
     } catch (error) {
       alert("Create Failed");
     }
@@ -260,6 +270,7 @@ export default function CourseDetails() {
       setSyllabusPdf(null);
       setThumbnail(null);
       alert("Course Updated Successfully");
+      setShowForm(false);
       fetchAllCourses(page);
     } catch (error) {
       alert("Update Failed" + error.message);
@@ -293,14 +304,42 @@ export default function CourseDetails() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Course Management</h1>
-        <p className="text-slate-500">Create, edit and manage your study programs and courses.</p>
+    <div className="max-w-[1400px] mx-auto animate-fade-in py-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Course Management</h1>
+          <p className="text-slate-500">Create, edit and manage your study programs and courses.</p>
+        </div>
+        <button
+          onClick={() => {
+            if (showForm) {
+              setFormData(initialState);
+              setCourseId(null);
+              setThumbnail(null);
+              setSyllabusPdf(null);
+              setShowForm(false);
+            } else {
+              setFormData(initialState);
+              setCourseId(null);
+              setThumbnail(null);
+              setSyllabusPdf(null);
+              setShowForm(true);
+            }
+          }}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-lg ${
+            showForm 
+              ? 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-slate-100' 
+              : 'bg-brand-600 text-white hover:bg-brand-700 shadow-brand-100'
+          }`}
+        >
+          {showForm ? <X size={20} /> : <PlusCircle size={20} />}
+          {showForm ? "Cancel & Close" : "Add New Course"}
+        </button>
       </div>
 
       {/* FORM SECTION */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-10 overflow-hidden">
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-10 overflow-hidden animate-slide-up">
         <div className="p-6 md:p-8">
           <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
             <div className="p-2 bg-brand-50 rounded-lg">
@@ -323,7 +362,7 @@ export default function CourseDetails() {
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.category}
+                    {cat.categoryName}
                   </option>
                 ))}
               </select>
@@ -668,131 +707,170 @@ export default function CourseDetails() {
           </div>
         </div>
       </div>
+      )}
 
       {/* COURSE LIST SECTION */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-6 md:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-50 rounded-lg">
-                <GraduationCap className="w-6 h-6 text-emerald-600" />
+      {!showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in">
+          <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/30">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-brand-50 rounded-xl text-brand-600">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Available Courses</h2>
+                  <p className="text-sm text-slate-500">Manage {totalCourses} courses efficiently</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">Available Courses</h2>
-                <p className="text-sm text-slate-500">Total of {totalCourses} courses across all categories</p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
+                {/* Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search Title..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <div className="relative w-full sm:w-56">
+                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50 appearance-none"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.categoryName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-            
-            <div className="inline-flex items-center bg-slate-50 rounded-lg p-1 border border-slate-200">
-              <span className="px-3 py-1.5 text-xs font-bold text-slate-500 uppercase tracking-widest">Active Database</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.map((course) => (
-              <div
-                key={course.id}
-                className={`group relative bg-white border rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl ${courseId === course.id ? 'ring-2 ring-brand-500 border-transparent shadow-lg shadow-brand-100' : 'border-slate-200 hover:border-brand-200'}`}
-              >
-                {/* Course Image */}
-                <div className="aspect-[16/10] w-full bg-slate-100 overflow-hidden relative">
-                  {course.thumbnail ? (
-                    <img
-                      src={`${BASE_URL}/uploads/${course.thumbnail}`}
-                      alt={course.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <BookOpen className="w-12 h-12 text-slate-300" />
-                    </div>
-                  )}
-                  
-                  {/* Action Overlays */}
-                  <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                    <button
-                      onClick={() => handleEditCourse(course.slug)}
-                      className="p-3 bg-white text-slate-900 rounded-full hover:bg-brand-500 hover:text-white transition-all transform hover:scale-110 shadow-lg"
-                      title="Edit Course"
-                    >
-                      <Edit2 size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(course.id)}
-                      className="p-3 bg-white text-slate-900 rounded-full hover:bg-red-500 hover:text-white transition-all transform hover:scale-110 shadow-lg"
-                      title="Delete Course"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-
-                  <div className="absolute top-4 left-4">
-                    <span className="px-2.5 py-1 bg-white/90 backdrop-blur rounded-lg text-[10px] font-bold text-slate-900 uppercase tracking-widest shadow-sm">
-                      {course.level || "Regular"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Course Content */}
-                <div className="p-5">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{course.mode || "Online"}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-800 line-clamp-1 mb-1" title={course.title}>{course.title}</h3>
-                  <p className="text-sm text-slate-500 line-clamp-2 mb-4 h-10">{course.short_description}</p>
-                  
-                  <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">Price</span>
-                      <span className="text-xl font-black text-brand-600 tracking-tight">₹{course.price}</span>
-                    </div>
-                    
-                    <div className="flex flex-col text-right">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase">Duration</span>
-                      <span className="text-sm font-bold text-slate-700">{course.duration_months} Months</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Thumbnail</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest line-clamp-1">Course Title</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Category</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Price / Duration</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Details</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {courses
+                  .filter(c => c.title?.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(c => !selectedCategory || c.category_id === selectedCategory)
+                  .map((course) => (
+                  <tr key={course.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="w-20 h-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-transform group-hover:scale-105">
+                        {course.thumbnail ? (
+                          <img
+                            src={course.thumbnail}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <BookOpen className="w-5 h-5 text-slate-300" />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-[250px]">
+                        <p className="text-sm font-bold text-slate-800 line-clamp-1 mb-1">{course.title}</p>
+                        <p className="text-[11px] text-slate-400 font-medium line-clamp-1 italic">{course.slug}</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2.5 py-1 bg-brand-50 text-brand-700 text-[10px] font-bold rounded-lg uppercase tracking-wider border border-brand-100">
+                        {categories.find(c => c.id === course.category_id)?.categoryName || "No Category"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-brand-600 tracking-tight">₹{course.price}</span>
+                        <span className="text-[11px] font-bold text-slate-400">{course.duration_months} Months</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-2">
+                         <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase">{course.level || "Regular"}</span>
+                         <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-md uppercase">{course.mode || "Online"}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleEditCourse(course.slug)}
+                          className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all"
+                          title="Edit Course"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(course.id)}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete Course"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
-          <div className="mt-8 flex flex-col items-center gap-6">
-            <p className="text-sm text-slate-500 font-medium tracking-tight">
+          <div className="p-6 md:p-8 bg-slate-50/30 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <p className="text-sm text-slate-500 font-medium tracking-tight order-2 sm:order-1">
               Showing <span className="text-slate-900 font-bold">{(page - 1) * 10 + 1}–{Math.min(page * 10, totalCourses)}</span> of <span className="text-slate-900 font-bold">{totalCourses}</span> courses
             </p>
             
             {totalPages > 1 && (
-              <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200 shadow-inner">
+              <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm order-1 sm:order-2">
                 <button
                   onClick={() => handlePageChange(page - 1)}
                   disabled={page === 1}
-                  className="p-2.5 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
                 
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
                   {[...Array(totalPages)].map((_, i) => {
                      const p = i + 1;
-                     // Only show current page, first, last, and one around current
                      if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
                         return (
                           <button
                             key={p}
                             onClick={() => handlePageChange(p)}
-                            className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-all ${
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
                               page === p 
                                 ? 'bg-brand-600 text-white shadow-md shadow-brand-100' 
-                                : 'text-slate-600 hover:bg-white'
+                                : 'text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             {p}
                           </button>
                         );
                      } else if (p === page - 2 || p === page + 2) {
-                        return <span key={p} className="px-1 text-slate-400">...</span>;
+                        return <span key={p} className="px-1 text-slate-300">...</span>;
                      }
                      return null;
                   })}
@@ -801,15 +879,15 @@ export default function CourseDetails() {
                 <button
                   onClick={() => handlePageChange(page + 1)}
                   disabled={page === totalPages}
-                  className="p-2.5 text-slate-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={18} />
                 </button>
               </div>
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

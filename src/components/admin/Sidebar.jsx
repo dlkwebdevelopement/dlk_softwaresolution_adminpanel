@@ -23,7 +23,6 @@ import {
 const menuItems = [
   { text: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
   { text: "Categories", icon: <FolderTree size={20} />, path: "/categories" },
-  { text: "Subcategories", icon: <CornerDownRight size={20} />, path: "/subcategories" },
   { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
   { text: "Company", icon: <Building2 size={20} />, path: "/company" },
   { text: "Hiring Comps", icon: <Briefcase size={20} />, path: "/hiring" },

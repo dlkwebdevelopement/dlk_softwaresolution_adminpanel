@@ -18,19 +18,7 @@ const Navbar = () => {
         
         {/* Left - Search */}
         <div className="flex items-center flex-1">
-          <div className="relative w-full max-w-md hidden md:block">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-slate-400" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search admin panel..."
-              className="block w-full rounded-full border-0 py-2 pl-10 pr-4 text-slate-900 ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 sm:text-sm sm:leading-6 bg-slate-50 hover:bg-white transition-all outline-none"
-            />
-          </div>
-          <button className="md:hidden p-2 text-slate-500 hover:text-slate-700">
-            <Search className="h-5 w-5" />
-          </button>
+          
         </div>
 
         {/* Right - Profile & Actions */}

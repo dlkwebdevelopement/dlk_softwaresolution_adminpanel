@@ -143,7 +143,7 @@ const Contact = () => {
                       <td className="px-6 py-4">
                          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
                            <Clock size={12} />
-                           {new Date(contact.created_at).toLocaleString('en-IN', {
+                           {new Date(contact.createdAt).toLocaleString('en-IN', {
                               day: '2-digit',
                               month: 'short',
                               year: 'numeric',

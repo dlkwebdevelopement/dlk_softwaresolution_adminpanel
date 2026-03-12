@@ -1,7 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "../../pages/admin/Dashboard";
 import Categories from "../../pages/admin/Categories";
-import Subcategories from "../../pages/admin/Subcategories";
 import Banners from "../../pages/admin/Banners";
 import Company from "../../pages/admin/Company";
 import Enquiries from "../../pages/admin/Enquiries";
@@ -45,14 +44,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Categories />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/subcategories"
-        element={
-          <ProtectedRoute>
-            <Subcategories />
           </ProtectedRoute>
         }
       />
