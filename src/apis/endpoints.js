@@ -15,10 +15,14 @@ export const ADMIN_DELETE_SUBCATEGORY = (id) => `/admin/subcategory/${id}`;
 
 // 📩 Enquiries
 export const ADMIN_GET_ENQUIRIES = "/admin/enquiries";
+export const ADMIN_MARK_ENQUIRY_READ = (id) => `/admin/enquiries/${id}/read`;
+export const ADMIN_REPLY_ENQUIRY = "/admin/enquiries/reply";
+export const ADMIN_DELETE_ENQUIRY = (id) => `/admin/enquiries/${id}`;
 
 // 🖼️ Banners
 export const ADMIN_UPLOAD_BANNER = "/admin/upload-banner";
 export const ADMIN_GET_BANNERS = "/admin/banners";
+export const ADMIN_UPDATE_BANNER = (id) => `/admin/banner/${id}`;
 export const ADMIN_DELETE_BANNER = (id) => `/admin/banner/${id}`;
 
 // 🏢 Company Images
@@ -35,14 +39,12 @@ export const ADMIN_DELETE_QUESTION = (id) => `/admin/faq/question/${id}`;
 export const ADMIN_UPDATE_ANSWER = (id) => `/admin/faq/answer/${id}`;
 export const ADMIN_DELETE_ANSWER = (id) => `/admin/faq/answer/${id}`;
 
-// ✅ Hiring Companies Endpoints
-export const ADMIN_GET_HIRING = "/admin/hiring";
-export const ADMIN_CREATE_HIRING = "/admin/hiring";
-export const ADMIN_UPDATE_HIRING = (id) => `/admin/hiring/${id}`;
-export const ADMIN_DELETE_HIRING = (id) => `/admin/hiring/${id}`;
 
 //register
 export const ADMIN_GET_REGISTER = "/admin/register";
+export const ADMIN_MARK_REGISTER_READ = (id) => `/admin/register/${id}/read`;
+export const ADMIN_REPLY_REGISTER = "/admin/register/reply";
+export const ADMIN_DELETE_REGISTER = (id) => `/admin/register/${id}`;
 
 //live classes
 export const ADMIN_GET_LIVE_CLASSES = "/admin/liveclass";
@@ -69,6 +71,8 @@ export const ADMIN_DELETE_COURSE = (id) => `/admin/course/${id}`;
 // contact
 export const ADMIN_GET_ALL_CONTACTS = "/admin/contact";
 export const ADMIN_DELETE_CONTACTS = (id) => `/admin/contact/${id}`;
+export const ADMIN_MARK_CONTACT_READ = (id) => `/admin/contact/${id}/read`;
+export const ADMIN_REPLY_CONTACT = "/admin/contact/reply";
 
 
 //testimonial

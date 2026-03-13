@@ -2,6 +2,7 @@ import { BrowserRouter, useLocation } from "react-router-dom";
 import AppRoutes from "./routes/admin/AppRoutes";
 import Sidebar from "./components/admin/Sidebar";
 import Navbar from "./components/admin/Navbar"; 
+import { NotificationProvider } from "./context/NotificationContext";
 
 function Layout() {
   const location = useLocation();
@@ -23,7 +24,9 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout />
+      <NotificationProvider>
+        <Layout />
+      </NotificationProvider>
     </BrowserRouter>
   );
 }

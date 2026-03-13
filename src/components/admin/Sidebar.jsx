@@ -22,17 +22,18 @@ import {
 
 const menuItems = [
   { text: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
-  { text: "Categories", icon: <FolderTree size={20} />, path: "/categories" },
-  { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
-  { text: "Company", icon: <Building2 size={20} />, path: "/company" },
-  { text: "Hiring Comps", icon: <Briefcase size={20} />, path: "/hiring" },
-  { text: "Enquiries", icon: <Mail size={20} />, path: "/enquiries" },
   { text: "Registrations", icon: <Users size={20} />, path: "/register" },
+  { text: "Enquiries", icon: <Mail size={20} />, path: "/enquiries" },
+  { text: "Contacts", icon: <Contact size={20} />, path: "/contacts" },
+  { text: "Categories", icon: <FolderTree size={20} />, path: "/categories" },
+  { text: "Courses", icon: <BookOpen size={20} />, path: "/courses" },
   { text: "Live Classes", icon: <Video size={20} />, path: "/liveclass" },
-  { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
-  { text: "FAQ", icon: <HelpCircle size={20} />, path: "/faq" },
-  { text: "Testimonial", icon: <MessageSquare size={20} />, path: "/testimonials" },
+  { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
   { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
+  { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
+  { text: "Testimonial", icon: <MessageSquare size={20} />, path: "/testimonials" },
+  { text: "FAQ", icon: <HelpCircle size={20} />, path: "/faq" },
+  { text: "Company", icon: <Building2 size={20} />, path: "/company" },
 ];
 
 const SidebarItem = ({ icon, text, path, subItems }) => {
@@ -117,7 +118,7 @@ const Sidebar = () => {
       {/* Navigation Menu */}
       <div className="flex-1 overflow-y-auto sidebar-scroll px-3 py-6">
         <div className="mb-2 px-3">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Main Menu</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Navigation Terminal</span>
         </div>
 
         <nav className="space-y-1 mb-8">
@@ -129,22 +130,6 @@ const Sidebar = () => {
               path={item.path} 
             />
           ))}
-          
-          <div className="mt-6 mb-2 px-3 pt-4 border-t border-slate-800/50">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Management</span>
-          </div>
-
-          <SidebarItem 
-            icon={<BookOpen size={20} />} 
-            text="Courses" 
-            path="/courses" 
-          />
-
-          <SidebarItem 
-            icon={<Contact size={20} />} 
-            text="Contact" 
-            path="/contacts" 
-          />
         </nav>
       </div>
       

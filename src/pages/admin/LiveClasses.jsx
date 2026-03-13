@@ -12,7 +12,10 @@ import {
   Search,
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
+  ArrowLeft,
+  CalendarDays,
+  Timer
 } from "lucide-react";
 
 import {
@@ -35,6 +38,8 @@ export default function LiveClasses() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [view, setView] = useState("list"); // "list" or "form"
+  const [searchQuery, setSearchQuery] = useState("");
 
   // 🔹 Form fields
   const [courseId, setCourseId] = useState("");
@@ -77,6 +82,7 @@ export default function LiveClasses() {
     setStartTime("");
     setEndTime("");
     setEditingId(null);
+    setView("list");
   };
 
   const submitLiveClass = async (e) => {
@@ -126,16 +132,15 @@ export default function LiveClasses() {
     return new Date(date).toISOString().split("T")[0];
   };
 
-  const editLiveClass = (c) => {
+  const handleEdit = (c) => {
     setEditingId(c.id);
-    setCourseId(c.courseId);
+    setCourseId(typeof c.courseId === 'object' ? (c.courseId?.id || c.courseId?._id) : c.courseId);
     setTitle(c.title);
     setStartDate(toInputDate(c.startDate));
     setDurationDays(c.durationDays);
     setStartTime(c.startTime);
     setEndTime(c.endTime);
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setView("form");
   };
 
   const removeLiveClass = async (id) => {
@@ -171,213 +176,284 @@ export default function LiveClasses() {
     });
   };
 
+  const filteredList = list.filter(item => 
+    item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.courseId?.categoryName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in">
+    <div className="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in">
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Live Classes</h1>
-          <p className="text-slate-500">Manage schedules and topics for real-time educational sessions.</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Live Classes</h1>
+          <p className="text-slate-500 font-medium">Manage schedules and topics for real-time educational sessions.</p>
         </div>
+        {view === "list" ? (
+          <button 
+            onClick={() => setView("form")}
+            className="flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg hover:shadow-brand-100 active:scale-95"
+          >
+            <Plus className="w-5 h-5" />
+            Schedule New Session
+          </button>
+        ) : (
+          <button 
+            onClick={resetForm}
+            className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-2xl font-bold transition-all shadow-sm active:scale-95"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to List
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* 🔹 FORM SECTION */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 sticky top-24 overflow-hidden">
-            <div className="bg-slate-50 p-6 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`p-2 rounded-lg ${editingId ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
-                   {editingId ? <Edit2 size={18} /> : <Plus size={18} />}
-                </div>
-                <h2 className="font-bold text-slate-800">{editingId ? "Update Session" : "Schedule New"}</h2>
+      {view === "list" ? (
+        /* LIST VIEW (Table) */
+        <div className="space-y-6">
+          {/* Search & Filter Bar */}
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input 
+                type="text"
+                placeholder="Search by title or category..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-slate-200 border focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+               <Layers className="text-slate-400 w-4 h-4" />
+               <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total: {filteredList.length}</span>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200">
+                    <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest">Session Details</th>
+                    <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest">Category</th>
+                    <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest">Schedule</th>
+                    <th className="px-6 py-5 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {loading ? (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-20 text-center">
+                        <Loader2 className="w-10 h-10 animate-spin text-brand-500 mx-auto mb-3" />
+                        <p className="text-slate-400 font-medium italic">Synchronizing classes...</p>
+                      </td>
+                    </tr>
+                  ) : filteredList.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-20 text-center">
+                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Video className="w-8 h-8 text-slate-200" />
+                        </div>
+                        <p className="text-slate-500 font-bold text-lg">No classes found</p>
+                        <p className="text-slate-400 text-sm mt-1">Try adjusting your search or add a new session.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredList.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
+                              <Video className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{item.title}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter bg-slate-100 px-1.5 py-0.5 rounded">Duration: {item.durationDays} Days</span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest border border-slate-200 group-hover:bg-brand-50 group-hover:text-brand-600 group-hover:border-brand-200 transition-colors">
+                            {item.courseId?.categoryName || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 text-slate-600">
+                              <CalendarDays className="w-3.5 h-3.5 text-brand-500" />
+                              <span className="text-xs font-bold">{formatDate(item.startDate)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-500">
+                              <Timer className="w-3.5 h-3.5 text-brand-400" />
+                              <span className="text-[11px] font-medium">{formatTime12(item.startTime)} – {formatTime12(item.endTime)}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0">
+                            <button 
+                              onClick={() => handleEdit(item)}
+                              className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-brand-600 hover:border-brand-200 hover:bg-brand-50 rounded-xl transition-all shadow-sm"
+                              title="Edit Session"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => removeLiveClass(item.id)}
+                              className="p-2.5 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 rounded-xl transition-all shadow-sm"
+                              title="Delete Session"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* FORM VIEW */
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-[32px] shadow-xl border border-slate-100 overflow-hidden">
+            <div className="bg-slate-50/50 p-8 border-b border-slate-100 flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${editingId ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
+                {editingId ? <Edit2 size={24} /> : <Plus size={24} />}
               </div>
-              {editingId && (
-                <button onClick={resetForm} className="text-slate-400 hover:text-red-500 transition-colors">
-                  <X size={20} />
-                </button>
-              )}
+              <div>
+                <h2 className="text-xl font-black text-slate-900 leading-tight">
+                  {editingId ? "Update Live Session" : "Schedule New Live Class"}
+                </h2>
+                <p className="text-slate-500 text-sm font-medium">Please provide accurate scheduling information for the students.</p>
+              </div>
             </div>
 
-            <form onSubmit={submitLiveClass} className="p-6 space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Class Category</label>
-                <select
-                  required
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
-                  className="w-full rounded-xl border-slate-200 border px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all appearance-none cursor-pointer bg-white"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.category}</option>
-                  ))}
-                </select>
-              </div>
+            <form onSubmit={submitLiveClass} className="p-8 md:p-10 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Topic & Category */}
+                <div className="space-y-6">
+                   <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Session Title <span className="text-brand-500">*</span></label>
+                    <div className="relative">
+                      <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-brand-500" />
+                      <input
+                        required
+                        placeholder="e.g. Master React Hooks"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full rounded-2xl border-slate-200 border pl-12 pr-4 py-4 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Class Title</label>
-                <input
-                  required
-                  placeholder="e.g. Advanced React Patterns"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl border-slate-200 border px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Start Date</label>
-                  <input
-                    required
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
-                  />
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Class Category <span className="text-brand-500">*</span></label>
+                    <div className="relative">
+                      <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                      <select
+                        required
+                        value={courseId}
+                        onChange={(e) => setCourseId(e.target.value)}
+                        className="w-full rounded-2xl border-slate-200 border pl-12 pr-4 py-4 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all appearance-none cursor-pointer bg-white font-medium"
+                      >
+                        <option value="">Select a Category</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.categoryName}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Duration</label>
-                  <div className="relative">
-                    <input
-                      required
-                      type="number"
-                      placeholder="7"
-                      value={durationDays}
-                      onChange={(e) => setDurationDays(e.target.value)}
-                      className="w-full rounded-xl border-slate-200 border px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all pr-12"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">DAYS</span>
+
+                {/* Schedule & Duration */}
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Start Date <span className="text-brand-500">*</span></label>
+                      <input
+                        required
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full rounded-2xl border-slate-200 border px-4 py-4 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all font-medium"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Duration <span className="text-brand-500">*</span></label>
+                      <div className="relative">
+                        <input
+                          required
+                          type="number"
+                          placeholder="e.g. 7"
+                          value={durationDays}
+                          onChange={(e) => setDurationDays(e.target.value)}
+                          className="w-full rounded-2xl border-slate-200 border px-4 py-4 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all pr-14 font-medium"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 tracking-wider">DAYS</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Start Time <span className="text-brand-500">*</span></label>
+                      <input
+                        required
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        className="w-full rounded-2xl border-slate-200 border px-4 py-4 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all font-medium"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">End Time <span className="text-brand-500">*</span></label>
+                      <input
+                        required
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className="w-full rounded-2xl border-slate-200 border px-4 py-4 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all font-medium"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Start Time</label>
-                  <input
-                    required
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">End Time</label>
-                  <input
-                    required
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
-                  />
-                </div>
+              <div className="pt-6 border-t border-slate-50 flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 py-4 px-6 rounded-2xl font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all active:scale-95"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`flex-[2] py-4 px-8 rounded-2xl font-black text-white flex items-center justify-center gap-3 transition-all shadow-xl active:scale-95 disabled:opacity-50
+                    ${editingId 
+                      ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200 shadow-lg' 
+                      : 'bg-brand-600 hover:bg-brand-700 shadow-brand-200 shadow-lg'}`}
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : (
+                    <>
+                      {editingId ? <CheckCircle2 size={22} /> : <Calendar size={22} />}
+                      <span>{editingId ? "Update Live Session" : "Confirm Schedule"}</span>
+                    </>
+                  )}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] mt-4 disabled:opacity-50
-                  ${editingId 
-                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200' 
-                    : 'bg-brand-600 hover:bg-brand-700 text-white shadow-brand-200'}`}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Video size={18} />
-                    {editingId ? "Update session info" : "Schedule Live Class"}
-                  </>
-                )}
-              </button>
             </form>
           </div>
         </div>
-
-        {/* 🔹 LIST SECTION */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Layers className="text-brand-500" size={20} />
-              Scheduled Classes ({list.length})
-            </h2>
-          </div>
-
-          {loading ? (
-             <div className="bg-white rounded-[32px] p-20 flex flex-col items-center justify-center text-slate-400 border border-slate-100">
-                <Loader2 className="w-12 h-12 animate-spin mb-4 text-brand-500" />
-                <p className="font-medium italic">Refreshing class list...</p>
-             </div>
-          ) : list.length === 0 ? (
-            <div className="bg-white rounded-[32px] p-20 flex flex-col items-center justify-center text-slate-400 border border-slate-100">
-               <Video size={64} className="mb-4 opacity-10" />
-               <p className="font-bold text-slate-500">No live classes scheduled</p>
-               <p className="text-sm">Add your first session using the form on the left.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {list.map((c) => (
-                <div
-                  key={c.id}
-                  className="bg-white p-6 rounded-[28px] border border-slate-200 hover:border-brand-500/50 hover:shadow-xl hover:shadow-brand-500/5 transition-all group relative overflow-hidden"
-                >
-                  {/* Category Badge & Actions */}
-                  <div className="flex items-start justify-between mb-4">
-                    <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest border border-slate-200 group-hover:bg-brand-50 group-hover:text-brand-600 group-hover:border-brand-200 transition-colors">
-                      {c.category?.category || "Category"}
-                    </span>
-                    <div className="flex gap-2">
-                       <button
-                         onClick={() => editLiveClass(c)}
-                         className="p-2 bg-slate-50 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all"
-                       >
-                         <Edit2 size={14} />
-                       </button>
-                       <button
-                         onClick={() => removeLiveClass(c.id)}
-                         className="p-2 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                       >
-                         <Trash2 size={14} />
-                       </button>
-                    </div>
-                  </div>
-
-                  <h3 className="text-lg font-black text-slate-900 leading-tight mb-4 group-hover:text-brand-600 transition-colors">
-                    {c.title}
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
-                       <Calendar size={14} className="text-brand-500" />
-                       <span className="text-xs font-bold text-slate-700">{formatDate(c.startDate)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-100">
-                       <Clock size={14} className="text-brand-500" />
-                       <span className="text-xs font-bold text-slate-700">{c.durationDays} Days</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-brand-50/50 p-3 rounded-2xl border border-brand-100/30">
-                     <div className="flex items-center gap-2 text-xs font-black text-brand-700 uppercase tracking-tighter">
-                        <Video size={14} />
-                        Session Time:
-                     </div>
-                     <span className="text-xs font-bold text-slate-600">
-                        {formatTime12(c.startTime)} – {formatTime12(c.endTime)}
-                     </span>
-                  </div>
-
-                  {/* Visual Accent */}
-                  <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-slate-50 rounded-full group-hover:bg-brand-50 transition-colors pointer-events-none opacity-50"></div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-

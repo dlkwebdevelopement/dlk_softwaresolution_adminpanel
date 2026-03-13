@@ -6,7 +6,6 @@ import Company from "../../pages/admin/Company";
 import Enquiries from "../../pages/admin/Enquiries";
 import Faq from "../../pages/admin/Faq";
 import Login from "../../pages/admin/Login";
-import HiringCompanies from "../../pages/admin/HiringCompanies";
 import ProtectedRoute from "../../components/admin/ProtectedRoute";
 import Register from "../../pages/admin/Register";
 import LiveClasses from "../../pages/admin/LiveClasses";
@@ -60,14 +59,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Company />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/hiring"
-        element={
-          <ProtectedRoute>
-            <HiringCompanies />
           </ProtectedRoute>
         }
       />

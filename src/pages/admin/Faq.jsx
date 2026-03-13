@@ -1,14 +1,14 @@
-// Faq.jsx - Enhanced UI
 import { useEffect, useState } from "react";
 import {
+  PlusCircle,
   Trash2,
   Edit2,
   Check,
   X,
-  ChevronDown,
   HelpCircle,
-  Plus,
-  MessageSquare
+  MessageSquare,
+  Search,
+  ChevronDown
 } from "lucide-react";
 import {
   GetRequest,
@@ -35,6 +35,9 @@ export default function Faq() {
   const [editingA, setEditingA] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [expandedQ, setExpandedQ] = useState(null);
+  
+  const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetch = async () => setQuestions(await GetRequest(ADMIN_GET_ALL_QUESTIONS));
   useEffect(() => { fetch(); }, []);
@@ -43,6 +46,7 @@ export default function Faq() {
     if (!qVal.trim()) return;
     await PostRequest(ADMIN_ADD_QUESTION, { question: qVal });
     setQVal(""); fetch();
+    setShowForm(false);
   };
 
   const addAnswer = async () => {
@@ -51,6 +55,7 @@ export default function Faq() {
     setAnsVal(""); 
     setExpandedQ(selectedQ); // Expand to show the newly added answer
     fetch();
+    setShowForm(false);
   };
 
   const startEditQuestion = (q) => { setEditingQ(q.id); setEditVal(q.question); };
@@ -87,273 +92,295 @@ export default function Faq() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">FAQ Management</h1>
-        <p className="text-slate-500">Manage frequently asked questions and answers</p>
+    <div className="max-w-[1400px] mx-auto animate-fade-in py-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">FAQ Management</h1>
+          <p className="text-slate-500">Create, edit and manage frequently asked questions and answers.</p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-lg ${
+            showForm 
+              ? 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-slate-100' 
+              : 'bg-brand-600 text-white hover:bg-brand-700 shadow-brand-100'
+          }`}
+        >
+          {showForm ? <X size={20} /> : <PlusCircle size={20} />}
+          {showForm ? "Cancel & Close" : "Add FAQ Item"}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Add Forms */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-fit">
-            <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
-              <Plus className="w-5 h-5 text-brand-600" />
-              Add New Question
-            </h2>
-            
-            <div className="flex gap-3 flex-col sm:flex-row mb-8">
-              <input
-                type="text"
-                value={qVal}
-                onChange={(e) => setQVal(e.target.value)}
-                placeholder="Enter new question..."
-                className="flex-1 rounded-lg border-slate-200 border px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
-                onKeyDown={(e) => e.key === 'Enter' && addQuestion()}
-              />
-              <button 
-                onClick={addQuestion}
-                disabled={!qVal.trim()}
-                className="bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-2 px-5 rounded-lg transition-colors shrink-0"
-              >
-                Add
-              </button>
-            </div>
-
-            <hr className="border-slate-100 my-6" />
-
-            <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-brand-600" />
-              Add Answer
-            </h2>
-            
-            <div className="flex gap-3 flex-col sm:flex-row">
-              <textarea
-                value={ansVal}
-                onChange={(e) => setAnsVal(e.target.value)}
-                placeholder={selectedQ ? "Enter answer..." : "Select a question first..."}
-                disabled={!selectedQ}
-                rows={3}
-                className="flex-1 rounded-lg border-slate-200 border px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:cursor-not-allowed resize-none"
-              />
-              <button 
-                onClick={addAnswer}
-                disabled={!ansVal.trim() || !selectedQ}
-                className="bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-2 px-5 rounded-lg transition-colors shrink-0 h-fit"
-              >
-                Add
-              </button>
-            </div>
-            
-            {!selectedQ && (
-              <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-md p-2 mt-3 flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4" />
-                Select a question from the list to add an answer
-              </p>
-            )}
-            {selectedQ && (
-              <div className="text-sm text-brand-700 bg-brand-50 border border-brand-100 rounded-md p-2 mt-3 flex items-center justify-between gap-2">
-                <span className="truncate flex-1">
-                  Adding answer to selected question
-                </span>
-                <button 
-                  onClick={() => setSelectedQ(null)}
-                  className="text-brand-500 hover:text-brand-800 shrink-0"
-                  title="Clear selection"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+      {/* FORM SECTION */}
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-10 overflow-hidden animate-slide-up">
+          <div className="p-6 md:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Add Question Side */}
+              <div className="border border-slate-200 rounded-xl p-6 bg-slate-50">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                    <PlusCircle className="w-5 h-5 text-brand-600" />
+                    Add New Question
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={qVal}
+                      onChange={(e) => setQVal(e.target.value)}
+                      placeholder="Enter new question..."
+                      className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all hover:bg-white"
+                      onKeyDown={(e) => e.key === 'Enter' && addQuestion()}
+                    />
+                    <button 
+                      onClick={addQuestion}
+                      disabled={!qVal.trim()}
+                      className="w-full bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors shadow-sm"
+                    >
+                      Publish Question
+                    </button>
+                  </div>
               </div>
-            )}
+
+              {/* Add Answer Side */}
+              <div className="border border-slate-200 rounded-xl p-6 bg-slate-50 relative">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-brand-600" />
+                    Add Answer
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    <textarea
+                      value={ansVal}
+                      onChange={(e) => setAnsVal(e.target.value)}
+                      placeholder={selectedQ ? "Enter answer for selected question..." : "Select a question from the list below first to answer it..."}
+                      disabled={!selectedQ}
+                      rows={4}
+                      className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all disabled:bg-slate-100 disabled:cursor-not-allowed resize-none hover:bg-white"
+                    />
+                    <button 
+                      onClick={addAnswer}
+                      disabled={!ansVal.trim() || !selectedQ}
+                      className="w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors shadow-sm mt-3"
+                    >
+                      Publish Answer
+                    </button>
+                  </div>
+                  
+                  {selectedQ && (
+                    <div className="absolute top-6 right-6 text-xs text-brand-700 bg-brand-50 border border-brand-200 rounded-md p-2 flex items-center gap-2 shadow-sm font-medium">
+                      <span>Answering selected question</span>
+                      <button 
+                        onClick={() => setSelectedQ(null)}
+                        className="p-1 hover:bg-brand-100 rounded text-brand-500 hover:text-brand-800"
+                        title="Clear selection"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Right Column: Q&A List */}
-        <div className="lg:col-span-7">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2 relative z-10">
-              <HelpCircle className="w-5 h-5 text-brand-600" />
-              Questions & Answers 
-              <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full text-sm font-medium ml-1">
-                {questions.length}
-              </span>
-            </h2>
-
-            {questions.length === 0 ? (
-              <div className="bg-slate-50 border border-slate-200 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center">
-                <HelpCircle className="w-12 h-12 text-slate-300 mb-3" />
-                <h3 className="text-slate-700 font-medium text-lg mb-1">No questions yet</h3>
-                <p className="text-slate-500 text-sm">Add your first FAQ question to get started</p>
+      {/* LIST VIEW SECTION */}
+      {!showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in">
+          <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/30">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-brand-50 rounded-xl text-brand-600">
+                  <HelpCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Available FAQs</h2>
+                  <p className="text-sm text-slate-500">Manage {questions.length} FAQ entries effectively</p>
+                </div>
               </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {questions.map((q) => (
-                  <div 
-                    key={q.id} 
-                    className={`border rounded-xl overflow-hidden transition-all duration-200 ${
-                      expandedQ === q.id 
-                        ? 'border-brand-200 shadow-sm bg-white' 
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
-                    } ${
-                      selectedQ === q.id ? 'ring-1 ring-brand-500' : ''
-                    }`}
-                  >
-                    {/* Accordion Header */}
-                    <div 
-                      className={`flex items-center justify-between p-4 cursor-pointer select-none transition-colors ${
-                        expandedQ === q.id ? 'bg-slate-50/50' : 'hover:bg-slate-50'
-                      }`}
-                      onClick={() => toggleExpand(q.id)}
-                    >
+              
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search questions or answers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[45%]">Question</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Responses</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {questions
+                  .filter(q => 
+                    q.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    q.answers?.some(a => a.answer.toLowerCase().includes(searchTerm.toLowerCase()))
+                  )
+                  .map((q) => (
+                  <tr key={q.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-4 relative">
                       {editingQ === q.id ? (
-                        <div className="flex items-center gap-2 w-full pr-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2 max-w-[400px]" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="text"
                             value={editVal}
                             onChange={(e) => setEditVal(e.target.value)}
-                            className="flex-1 rounded-md border-slate-300 border px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                            className="flex-1 rounded-md border-slate-300 border px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
                             autoFocus
                             onKeyDown={(e) => e.key === 'Enter' && saveQuestion(q.id)}
                           />
-                          <button
-                            onClick={() => saveQuestion(q.id)}
-                            className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-md transition-colors"
-                          >
+                          <button onClick={() => saveQuestion(q.id)} className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-md shadow-sm transition-colors">
                             <Check className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={cancelEdit}
-                            className="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md transition-colors"
-                          >
+                          <button onClick={cancelEdit} className="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md shadow-sm transition-colors">
                             <X className="w-4 h-4" />
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between w-full">
-                          <h3 className={`font-medium pr-4 ${expandedQ === q.id ? 'text-brand-700' : 'text-slate-800'}`}>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 break-words mb-1 flex items-start gap-2">
                             {q.question}
-                          </h3>
-                          
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                              {q.answers?.length || 0} ans
-                            </span>
-                            
-                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                              <button
-                                onClick={() => startEditQuestion(q)}
-                                className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
-                                title="Edit Question"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => removeQuestion(q.id)}
-                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                title="Delete Question"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                          </p>
+                          {/* Expanded Answers View */}
+                          {expandedQ === q.id && (
+                            <div className="mt-4 space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Answers</p>
+                              {q.answers?.length === 0 ? (
+                                <p className="text-sm text-slate-400 italic">No answers provided yet.</p>
+                              ) : (
+                                q.answers?.map((a) => (
+                                  <div key={a.id} className="group/ans flex gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                                     {editingA === a.id ? (
+                                        <div className="flex items-start gap-2 w-full">
+                                          <textarea
+                                            value={editVal}
+                                            onChange={(e) => setEditVal(e.target.value)}
+                                            className="flex-1 rounded-md border-slate-300 border px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[60px]"
+                                            autoFocus
+                                          />
+                                          <div className="flex flex-col gap-1 shrink-0">
+                                            <button onClick={() => saveAnswer(a.id)} className="p-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded"><Check className="w-4 h-4" /></button>
+                                            <button onClick={cancelEdit} className="p-1 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded"><X className="w-4 h-4" /></button>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <div className="flex-1 text-sm text-slate-600 whitespace-pre-wrap">{a.answer}</div>
+                                          <div className="flex flex-col gap-1 opacity-0 group-hover/ans:opacity-100 transition-opacity shrink-0">
+                                            <button onClick={() => startEditAnswer(a)} className="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded" title="Edit Answer"><Edit2 className="w-3.5 h-3.5" /></button>
+                                            <button onClick={() => removeAnswer(a.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Delete Answer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                          </div>
+                                        </>
+                                      )}
+                                  </div>
+                                ))
+                              )}
+                              
+                              <div className="pt-2 flex">
+                                <button
+                                  onClick={() => {
+                                    setSelectedQ(q.id);
+                                    setShowForm(true);
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                  }}
+                                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors flex items-center gap-1.5 border border-brand-100"
+                                >
+                                  <MessageSquare size={14} /> Add Another Answer
+                                </button>
+                              </div>
                             </div>
-                            
-                            <ChevronDown 
-                              className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${
-                                expandedQ === q.id ? 'rotate-180 text-brand-500' : ''
-                              }`} 
-                            />
-                          </div>
+                          )}
                         </div>
                       )}
-                    </div>
-
-                    {/* Accordion Body */}
-                    {expandedQ === q.id && (
-                      <div className="p-4 border-t border-slate-100 bg-white">
-                        {q.answers?.length === 0 ? (
-                          <div className="text-sm text-slate-500 italic py-2">
-                            No answers yet. Expand the form on the left to add one.
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-3">
-                            {q.answers?.map((a) => (
-                              <div
-                                key={a.id}
-                                className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100 group"
-                              >
-                                {editingA === a.id ? (
-                                  <div className="flex items-start gap-2 w-full">
-                                    <textarea
-                                      value={editVal}
-                                      onChange={(e) => setEditVal(e.target.value)}
-                                      className="flex-1 rounded-md border-slate-300 border px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[80px]"
-                                      autoFocus
-                                    />
-                                    <div className="flex flex-col gap-1 shrink-0">
-                                      <button
-                                        onClick={() => saveAnswer(a.id)}
-                                        className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-md transition-colors"
-                                        title="Save"
-                                      >
-                                        <Check className="w-4 h-4" />
-                                      </button>
-                                      <button
-                                        onClick={cancelEdit}
-                                        className="p-1.5 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-md transition-colors"
-                                        title="Cancel"
-                                      >
-                                        <X className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div className="flex-1 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                                      {a.answer}
-                                    </div>
-                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                      <button 
-                                        onClick={() => startEditAnswer(a)}
-                                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors"
-                                        title="Edit Answer"
-                                      >
-                                        <Edit2 className="w-3.5 h-3.5" />
-                                      </button>
-                                      <button 
-                                        onClick={() => removeAnswer(a.id)}
-                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                        title="Delete Answer"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                          <button
-                            onClick={() => setSelectedQ(selectedQ === q.id ? null : q.id)}
-                            className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors ${
-                              selectedQ === q.id 
-                                ? 'bg-brand-100 text-brand-700 hover:bg-brand-200' 
-                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                            }`}
-                          >
-                            {selectedQ === q.id ? 'Selected for Answer' : 'Select to Add Answer'}
-                          </button>
-                        </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => toggleExpand(q.id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
+                           q.answers?.length > 0 
+                            ? (expandedQ === q.id ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 hover:border-slate-300')
+                            : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                        }`}
+                      >
+                        {q.answers?.length || 0} Answers
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedQ === q.id ? 'rotate-180' : ''}`} />
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider border ${
+                        selectedQ === q.id
+                          ? 'bg-brand-50 text-brand-700 border-brand-200'
+                          : (q.answers?.length > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200')
+                      }`}>
+                        {selectedQ === q.id ? 'In Editor' : (q.answers?.length > 0 ? 'Answered' : 'Unanswered')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2 outline-none">
+                        <button
+                          onClick={() => {
+                            setSelectedQ(selectedQ === q.id ? null : q.id);
+                            if (selectedQ !== q.id) {
+                              setShowForm(true);
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                            }
+                          }}
+                          className={`p-2 rounded-lg transition-colors border shadow-sm ${
+                            selectedQ === q.id 
+                               ? 'bg-brand-50 text-brand-600 border-brand-200 hover:bg-brand-100' 
+                               : 'bg-white text-slate-500 border-slate-200 hover:border-brand-300 hover:text-brand-600'
+                          }`}
+                          title="Select to add answer"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => startEditQuestion(q)}
+                          className="p-2 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 rounded-lg transition-colors border border-slate-200 shadow-sm"
+                          title="Edit Question"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => removeQuestion(q.id)}
+                          className="p-2 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 rounded-lg transition-colors border border-slate-200 shadow-sm"
+                          title="Delete Question"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    )}
-                  </div>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            )}
+                
+                {questions.length > 0 && questions.filter(q => 
+                  q.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  q.answers?.some(a => a.answer.toLowerCase().includes(searchTerm.toLowerCase()))
+                ).length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-8 text-center text-slate-500">
+                      No FAQs found matching "{searchTerm}"
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
