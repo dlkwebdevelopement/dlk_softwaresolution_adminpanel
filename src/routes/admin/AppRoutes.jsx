@@ -14,6 +14,8 @@ import CourseDetails from "../../pages/adminCourse/CourseDetails";
 import Contact from "../../pages/adminContact/Contact";
 import Testimonials from "../../pages/admin/Testimonials";
 import GalleryManagement from "../../pages/admin/GalleryManagement.jsx";
+import Videos from "../../pages/admin/Videos";
+import Skills from "../../pages/admin/Skills";
 
 export default function AppRoutes() {
   return (
@@ -131,6 +133,22 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <GalleryManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/videos"
+        element={
+          <ProtectedRoute>
+            <Videos />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/skills"
+        element={
+          <ProtectedRoute>
+            <Skills />
           </ProtectedRoute>
         }
       />

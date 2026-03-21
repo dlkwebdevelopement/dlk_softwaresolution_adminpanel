@@ -13,7 +13,7 @@ function Layout() {
       {!isLoginPage && <Sidebar />}
       <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${!isLoginPage ? 'ml-[250px]' : ''}`}>
         {!isLoginPage && <Navbar />}
-        <main className="flex-1 p-6 overflow-x-hidden">
+        <main className="flex-1 pt-24 px-6 pb-6 overflow-x-hidden">
           <AppRoutes />
         </main>
       </div>

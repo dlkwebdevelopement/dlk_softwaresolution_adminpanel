@@ -86,3 +86,15 @@ export const ADMIN_GET_GALLERY = "/admin/gallery";
 export const ADMIN_UPDATE_GALLERY = (id) => `/admin/gallery/${id}`;
 export const ADMIN_ADD_GALLERY_IMAGES = (id) => `/admin/gallery/${id}/images`;
 export const ADMIN_DELETE_GALLERY_IMAGE = (id) => `/admin/gallery/${id}/image`;
+
+// 🎥 Videos
+export const ADMIN_GET_VIDEOS = "/admin/videos";
+export const ADMIN_POST_VIDEOS = "/admin/videos";
+export const ADMIN_UPDATE_VIDEOS = (id) => `/admin/videos/${id}`;
+export const ADMIN_DELETE_VIDEOS = (id) => `/admin/videos/${id}`;
+
+// 🏆 Skills
+export const ADMIN_GET_SKILLS = "/admin/skills";
+export const ADMIN_POST_SKILLS = "/admin/skills";
+export const ADMIN_UPDATE_SKILLS = (id) => `/admin/skills/${id}`;
+export const ADMIN_DELETE_SKILLS = (id) => `/admin/skills/${id}`;

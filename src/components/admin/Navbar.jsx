@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Bell, MessageSquare, Search, Menu, User, ChevronDown, LogOut, Settings, Clock, UserPlus, Info } from "lucide-react";
 import { useNotifications } from "../../context/NotificationContext";
 
-const Navbar = () => {
+const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -37,12 +37,18 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex w-full bg-white border-b border-slate-200">
-      <div className="flex h-[64px] w-full items-center justify-between px-6">
+    <header className="fixed top-0 right-0 z-40 flex w-full md:w-[calc(100%-250px)] h-[64px] bg-white border-b border-slate-200">
+      <div className="flex h-[64px] w-full items-center justify-between px-4 md:px-6">
         
-        {/* Left - Workspace / Search */}
-        <div className="flex items-center flex-1">
-          <h2 className="text-lg font-bold text-slate-800">Admin Dashboard</h2>
+        {/* Left - Hamburger & Title */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onToggleSidebar}
+            className="p-2 rounded-lg text-slate-500 hover:bg-slate-50 md:hidden"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+          <h2 className="text-base md:text-lg font-bold text-slate-800 hidden md:block lg:block">Admin Dashboard</h2>
         </div>
 
         {/* Right - Notifications & Profile */}

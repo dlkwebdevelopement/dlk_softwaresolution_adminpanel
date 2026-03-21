@@ -33,6 +33,7 @@ import {
   ADMIN_POST_COURSES,
   ADMIN_GET_CATEGORIES,
   ADMIN_GET_ALL_COURSES,
+  ADMIN_GET_SKILLS,
 } from "../../apis/endpoints";
 
 import { BASE_URL } from "../../apis/api";
@@ -51,6 +52,7 @@ const initialState = {
   whoShouldEnroll: [{ content: "", order_index: 0 }],
   learningPoints: [{ content: "", order_index: 0 }],
   curriculum: [{ title: "", order_index: 0 }],
+  skills: [],
 };
 
 export default function CourseDetails() {
@@ -67,6 +69,7 @@ export default function CourseDetails() {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [allSkills, setAllSkills] = useState([]);
 
   // ================= FETCH =================
   const fetchCategories = async () => {
@@ -95,8 +98,18 @@ export default function CourseDetails() {
     }
   };
 
+  const fetchSkills = async () => {
+    try {
+      const res = await GetRequest(ADMIN_GET_SKILLS);
+      setAllSkills(Array.isArray(res) ? res : res?.data || []);
+    } catch (err) {
+      console.error("Failed to fetch skills:", err);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
+    fetchSkills();
   }, []);
 
   useEffect(() => {
@@ -139,6 +152,15 @@ export default function CourseDetails() {
     setFormData({ ...formData, [field]: updated });
   };
 
+  const handleSkillToggle = (skillId) => {
+    const currentSkills = [...(formData.skills || [])];
+    if (currentSkills.includes(skillId)) {
+      setFormData({ ...formData, skills: currentSkills.filter(id => id !== skillId) });
+    } else {
+      setFormData({ ...formData, skills: [...currentSkills, skillId] });
+    }
+  };
+
   // ================= EDIT =================
   const handleEditCourse = async (slugValue) => {
     try {
@@ -166,6 +188,7 @@ export default function CourseDetails() {
         whoShouldEnroll: data.whoShouldEnroll || [{ content: "", order_index: 0 }],
         learningPoints: data.learningPoints || [{ content: "", order_index: 0 }],
         curriculum: data.curriculum || [{ title: "", order_index: 0 }],
+        skills: data.skills ? data.skills.map(s => s._id || s) : [],
       });
 
       setShowForm(true);
@@ -205,6 +228,8 @@ export default function CourseDetails() {
           } else {
             sendData.append(key, JSON.stringify(cleanedArray));
           }
+        } else if (key === "skills") {
+          sendData.append(key, JSON.stringify(formData.skills || []));
         } else if (key !== "thumbnail_url" && key !== "syllabus_pdf_url") {
           sendData.append(key, formData[key] || "");
         }
@@ -258,6 +283,8 @@ export default function CourseDetails() {
           } else {
             sendData.append(key, JSON.stringify(cleanedArray));
           }
+        } else if (key === "skills") {
+          sendData.append(key, JSON.stringify(formData.skills || []));
         } else if (key !== "thumbnail_url" && key !== "syllabus_pdf_url") {
           sendData.append(key, formData[key] || "");
         }
@@ -582,6 +609,40 @@ export default function CourseDetails() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Skills Selection */}
+          <div className="mt-8 space-y-3">
+            <label className="text-sm font-semibold text-slate-700 block">Course Tech Stack Skills</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/80">
+              {allSkills.map((skill) => {
+                const isSelected = formData.skills?.includes(skill._id);
+                return (
+                  <label 
+                    key={skill._id} 
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all ${
+                      isSelected 
+                        ? 'bg-emerald-50 border-emerald-500 shadow-sm text-emerald-800' 
+                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+                    }`}
+                  >
+                    <input 
+                      type="checkbox" 
+                      checked={isSelected} 
+                      onChange={() => handleSkillToggle(skill._id)}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
+                    />
+                    {skill.icon && (
+                      <img src={skill.icon} alt={skill.name} className="w-5 h-5 object-contain" />
+                    )}
+                    <span className="text-xs font-bold truncate">{skill.name}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {allSkills.length === 0 && (
+              <p className="text-xs text-slate-400">No skills found. Manage them in the Skills section.</p>
+            )}
           </div>
 
           {/* DYNAMIC LISTS */}

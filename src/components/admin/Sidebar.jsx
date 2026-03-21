@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Home,
   BookOpen,
-  Contact
+  Contact,
+  Youtube
 } from "lucide-react";
 
 const menuItems = [
@@ -28,8 +29,10 @@ const menuItems = [
   { text: "Categories", icon: <FolderTree size={20} />, path: "/categories" },
   { text: "Courses", icon: <BookOpen size={20} />, path: "/courses" },
   { text: "Live Classes", icon: <Video size={20} />, path: "/liveclass" },
+  { text: "Videos", icon: <Youtube size={20} />, path: "/videos" },
   { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
   { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
+  { text: "Skills", icon: <Briefcase size={20} />, path: "/skills" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
   { text: "Testimonial", icon: <MessageSquare size={20} />, path: "/testimonials" },
   { text: "FAQ", icon: <HelpCircle size={20} />, path: "/faq" },
@@ -102,17 +105,23 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
   );
 };
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   return (
-    <aside className="fixed top-0 left-0 w-[250px] h-screen bg-sidebar text-white z-50 flex flex-col shadow-xl">
+    <aside className={`fixed top-0 left-0 w-[250px] h-screen bg-sidebar text-white z-50 flex flex-col shadow-xl transition-transform duration-300 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Brand Header */}
-      <div className="h-[64px] min-h-[64px] flex items-center px-6 border-b border-sidebar-border bg-sidebar">
+      <div className="h-[64px] min-h-[64px] flex items-center justify-between px-6 border-b border-sidebar-border bg-sidebar">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-white shadow-lg shadow-brand-500/30">
             D
           </div>
           <span className="font-bold text-lg tracking-wide">DLK Admin</span>
         </div>
+        <button 
+          onClick={onClose}
+          className="p-1 rounded-lg hover:bg-slate-800 md:hidden"
+        >
+          <ChevronRight className="h-5 w-5 rotate-180" />
+        </button>
       </div>
 
       {/* Navigation Menu */}
@@ -121,7 +130,7 @@ const Sidebar = () => {
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Navigation Terminal</span>
         </div>
 
-        <nav className="space-y-1 mb-8">
+        <nav className="space-y-1 mb-8" onClick={() => { if(window.innerWidth < 768) onClose(); }}>
           {menuItems.map((item, index) => (
             <SidebarItem 
               key={index}
