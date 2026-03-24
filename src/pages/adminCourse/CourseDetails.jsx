@@ -9,6 +9,9 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
   Save,
   X,
   FileUp,
@@ -70,6 +73,7 @@ export default function CourseDetails() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [allSkills, setAllSkills] = useState([]);
+  const [draggedIndex, setDraggedIndex] = useState(null);
 
   // ================= FETCH =================
   const fetchCategories = async () => {
@@ -152,6 +156,16 @@ export default function CourseDetails() {
     setFormData({ ...formData, [field]: updated });
   };
 
+  const moveArrayItem = (field, index, direction) => {
+    const updated = [...(formData[field] || [])];
+    if (direction === "up" && index > 0) {
+      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+    } else if (direction === "down" && index < updated.length - 1) {
+      [updated[index + 1], updated[index]] = [updated[index], updated[index + 1]];
+    }
+    setFormData({ ...formData, [field]: updated });
+  };
+
   const handleSkillToggle = (skillId) => {
     const currentSkills = [...(formData.skills || [])];
     if (currentSkills.includes(skillId)) {
@@ -217,9 +231,10 @@ export default function CourseDetails() {
                 ? item.title && item.title.trim() !== ""
                 : item.content && item.content.trim() !== "",
             )
-            .map((item) => {
+            .map((item, idx) => {
               const newItem = { ...item };
               if (!newItem.id) delete newItem.id;
+              newItem.order_index = idx + 1;
               return newItem;
             });
 
@@ -272,9 +287,10 @@ export default function CourseDetails() {
                 ? item.title && item.title.trim() !== ""
                 : item.content && item.content.trim() !== "",
             )
-            .map((item) => {
+            .map((item, idx) => {
               const newItem = { ...item };
               if (!newItem.id) delete newItem.id;
+              newItem.order_index = idx + 1;
               return newItem;
             });
 
@@ -723,7 +739,31 @@ export default function CourseDetails() {
               </div>
               <div className="space-y-2">
                 {formData.curriculum.map((item, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div 
+                    key={index} 
+                    className={`flex items-center gap-2 p-1.5 rounded-lg border transition-all ${draggedIndex === index ? 'opacity-50 bg-slate-50 border-emerald-300' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      setDraggedIndex(index);
+                      e.dataTransfer.effectAllowed = "move";
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDrop={() => {
+                      if (draggedIndex === null || draggedIndex === index) return;
+                      const list = [...formData.curriculum];
+                      const itemToMove = list[draggedIndex];
+                      list.splice(draggedIndex, 1);
+                      list.splice(index, 0, itemToMove);
+                      setFormData({ ...formData, curriculum: list });
+                      setDraggedIndex(null);
+                    }}
+                    onDragEnd={() => setDraggedIndex(null)}
+                  >
+                    <div className="cursor-move text-slate-400 hover:text-slate-600 p-1" title="Drag to reorder">
+                      <GripVertical size={16} />
+                    </div>
                     <input
                       value={item.title}
                       onChange={(e) => handleArrayChange("curriculum", index, e.target.value)}
@@ -731,6 +771,7 @@ export default function CourseDetails() {
                       className="flex-1 rounded-lg border-slate-200 border px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
                     />
                     <button 
+                      type="button"
                       onClick={() => removeArrayItem("curriculum", index)}
                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                     >
