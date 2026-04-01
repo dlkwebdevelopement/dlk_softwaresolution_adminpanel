@@ -12,9 +12,10 @@ import {
   FileText,
   Eye,
   X,
-  Calendar,
   Plus,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 import {
@@ -37,6 +38,10 @@ export default function Blog() {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchingBlog, setFetchingBlog] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const blogsPerPage = 8; // Adjust threshold based on tall list layouts
 
   // Form states
   const [title, setTitle] = useState("");
@@ -331,6 +336,12 @@ export default function Blog() {
     }
   };
 
+  // Pagination logic
+  const indexOfLastBlog = currentPage * blogsPerPage;
+  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
+  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
+  const totalPages = Math.ceil(blogs.length / blogsPerPage);
+
   return (
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -592,7 +603,7 @@ export default function Blog() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {blogs.map((blog) => (
+                {currentBlogs.map((blog) => (
                   <tr 
                     key={blog.id} 
                     className={`hover:bg-slate-50/80 transition-colors group ${editId === blog.id ? 'bg-brand-50/30' : ''}`}
@@ -607,7 +618,9 @@ export default function Blog() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-slate-900 truncate" title={blog.title}>{blog.title}</h4>
+                          <h4 className="font-bold text-slate-900 truncate" title={blog.title}>
+                            {blog.title?.length > 50 ? `${blog.title.substring(0, 50)}...` : blog.title}
+                          </h4>
                           <p className="text-xs font-mono text-slate-400">/{blog.slug}</p>
                         </div>
                       </div>
@@ -652,6 +665,43 @@ export default function Blog() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center flex-wrap items-center gap-2 p-6 border-t border-slate-100">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 transition-colors"
+                title="Previous Page"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-9 h-9 rounded-lg border text-sm font-semibold transition-all ${
+                    currentPage === i + 1
+                      ? "bg-brand-600 border-brand-600 text-white shadow-md shadow-brand-200"
+                      : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 transition-colors"
+                title="Next Page"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
