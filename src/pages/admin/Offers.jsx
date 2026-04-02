@@ -255,7 +255,7 @@ export default function Offers() {
               Offer Media
             </h2>
             <div 
-              className={`relative aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
+              className={`relative aspect-[9/16] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all ${
                 preview ? 'border-brand-200 bg-brand-50/10' : 'border-slate-300 bg-slate-50'
               }`}
             >
@@ -297,12 +297,12 @@ export default function Offers() {
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">Crop Offer Image</h3>
-                <p className="text-sm text-slate-500">Adjust selection (4:3)</p>
+                <p className="text-sm text-slate-500">Adjust selection (9:16)</p>
               </div>
               <button onClick={() => setShowCropper(false)} className="p-2 hover:bg-slate-100 rounded-full"><X className="w-6 h-6 text-slate-400" /></button>
             </div>
             <div className="relative h-[450px] bg-slate-950">
-              <Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={4 / 3} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />
+              <Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={9 / 16} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />
             </div>
             <div className="p-6 space-y-4">
               <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(e.target.value)} className="w-full accent-brand-600" />
