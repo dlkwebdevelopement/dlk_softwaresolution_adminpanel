@@ -156,7 +156,7 @@ export default function Blog() {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const res = await GetRequest(ADMIN_GET_ALL_BLOGS);
+      const res = await GetRequest(`${ADMIN_GET_ALL_BLOGS}?limit=1000`);
       if (res.success) {
         console.log("API Response:", res.data);
         const blogArray = res.data.data?.data || res.data.data || [];

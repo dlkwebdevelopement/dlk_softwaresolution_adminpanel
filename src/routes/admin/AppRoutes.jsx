@@ -16,6 +16,7 @@ import Testimonials from "../../pages/admin/Testimonials";
 import GalleryManagement from "../../pages/admin/GalleryManagement.jsx";
 import Videos from "../../pages/admin/Videos";
 import Skills from "../../pages/admin/Skills";
+import Offers from "../../pages/admin/Offers";
 
 export default function AppRoutes() {
   return (
@@ -149,6 +150,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Skills />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/offers"
+        element={
+          <ProtectedRoute>
+            <Offers />
           </ProtectedRoute>
         }
       />

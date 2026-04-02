@@ -18,7 +18,8 @@ import {
   Home,
   BookOpen,
   Contact,
-  Youtube
+  Youtube,
+  Tag
 } from "lucide-react";
 
 const menuItems = [
@@ -31,6 +32,7 @@ const menuItems = [
   { text: "Live Classes", icon: <Video size={20} />, path: "/liveclass" },
   { text: "Videos", icon: <Youtube size={20} />, path: "/videos" },
   { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
+  { text: "Offers", icon: <Tag size={20} />, path: "/offers" },
   { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
   { text: "Skills", icon: <Briefcase size={20} />, path: "/skills" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },

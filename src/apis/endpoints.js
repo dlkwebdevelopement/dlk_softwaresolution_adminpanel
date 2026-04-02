@@ -25,6 +25,12 @@ export const ADMIN_GET_BANNERS = "/admin/banners";
 export const ADMIN_UPDATE_BANNER = (id) => `/admin/banner/${id}`;
 export const ADMIN_DELETE_BANNER = (id) => `/admin/banner/${id}`;
 
+// 💰 Offers
+export const ADMIN_UPLOAD_OFFER = "/admin/offers";
+export const ADMIN_GET_OFFERS = "/admin/offers";
+export const ADMIN_UPDATE_OFFER = (id) => `/admin/offers/${id}`;
+export const ADMIN_DELETE_OFFER = (id) => `/admin/offers/${id}`;
+
 // 🏢 Company Images
 export const ADMIN_UPLOAD_COMPANY = "/admin/upload-company";
 export const ADMIN_DELETE_COMPANY = (id) => `/admin/company/${id}`;
