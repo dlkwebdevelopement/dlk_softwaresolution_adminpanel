@@ -10,6 +10,7 @@ import ProtectedRoute from "../../components/admin/ProtectedRoute";
 import Register from "../../pages/admin/Register";
 import LiveClasses from "../../pages/admin/LiveClasses";
 import Blog from "../../pages/admin/Blog";
+import StudentProjects from "../../pages/admin/StudentProjects";
 import CourseDetails from "../../pages/adminCourse/CourseDetails";
 import Contact from "../../pages/adminContact/Contact";
 import Testimonials from "../../pages/admin/Testimonials";
@@ -17,6 +18,7 @@ import GalleryManagement from "../../pages/admin/GalleryManagement.jsx";
 import Videos from "../../pages/admin/Videos";
 import Skills from "../../pages/admin/Skills";
 import Offers from "../../pages/admin/Offers";
+import Placements from "../../pages/admin/Placements";
 
 export default function AppRoutes() {
   return (
@@ -106,6 +108,14 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/student-projects"
+        element={
+          <ProtectedRoute>
+            <StudentProjects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/courses"
         element={
           <ProtectedRoute>
@@ -158,6 +168,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Offers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/placements"
+        element={
+          <ProtectedRoute>
+            <Placements />
           </ProtectedRoute>
         }
       />

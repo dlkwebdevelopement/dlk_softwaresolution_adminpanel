@@ -66,6 +66,13 @@ export const ADMIN_GET_BLOGS_SLUG = (slug) => `/admin/blogs/${slug}`;
 export const ADMIN_UPDATE_BLOGS = (id) => `/admin/blogs/${id}`;
 export const ADMIN_DELETE_BLOGS = (id) => `/admin/blogs/${id}`;
 
+// Student Projects
+export const ADMIN_GET_ALL_STUDENT_PROJECTS = "/admin/student-projects";
+export const ADMIN_POST_STUDENT_PROJECTS = "/admin/student-projects";
+export const ADMIN_GET_STUDENT_PROJECTS_SLUG = (slug) => `/admin/student-projects/${slug}`;
+export const ADMIN_UPDATE_STUDENT_PROJECTS = (id) => `/admin/student-projects/${id}`;
+export const ADMIN_DELETE_STUDENT_PROJECTS = (id) => `/admin/student-projects/${id}`;
+
 //courses
 export const ADMIN_POST_COURSES = "/admin/course";
 export const ADMIN_GET_ALL_COURSES = "/admin/course";
@@ -104,3 +111,11 @@ export const ADMIN_GET_SKILLS = "/admin/skills";
 export const ADMIN_POST_SKILLS = "/admin/skills";
 export const ADMIN_UPDATE_SKILLS = (id) => `/admin/skills/${id}`;
 export const ADMIN_DELETE_SKILLS = (id) => `/admin/skills/${id}`;
+
+// 🎓 Placements
+export const ADMIN_GET_PLACEMENTS = "/admin/placements";
+export const ADMIN_POST_PLACEMENTS = "/admin/placements";
+export const ADMIN_UPDATE_PLACEMENT = (id) => `/admin/placements/${id}`;
+export const ADMIN_DELETE_PLACEMENT = (id) => `/admin/placements/${id}`;
+export const ADMIN_TOGGLE_PLACEMENT = (id) => `/admin/placements/${id}/toggle`;
+export const ADMIN_REORDER_PLACEMENTS = "/admin/placements/reorder";
