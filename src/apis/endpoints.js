@@ -96,9 +96,17 @@ export const ADMIN_DELETE_TESTIMONIALS = (id) => `/admin/testimonial/${id}`;
 
 // 🖼️ Gallery
 export const ADMIN_GET_GALLERY = "/admin/gallery";
+export const ADMIN_CREATE_GALLERY = "/admin/gallery";
 export const ADMIN_UPDATE_GALLERY = (id) => `/admin/gallery/${id}`;
+export const ADMIN_DELETE_GALLERY = (id) => `/admin/gallery/${id}`;
 export const ADMIN_ADD_GALLERY_IMAGES = (id) => `/admin/gallery/${id}/images`;
 export const ADMIN_DELETE_GALLERY_IMAGE = (id) => `/admin/gallery/${id}/image`;
+
+// 📅 Gallery Events
+export const ADMIN_GET_ALL_GALLERY_EVENTS = "/admin/gallery-events";
+export const ADMIN_POST_GALLERY_EVENT = "/admin/gallery-events";
+export const ADMIN_PUT_GALLERY_EVENT = (id) => `/admin/gallery-events/${id}`;
+export const ADMIN_DELETE_GALLERY_EVENT = (id) => `/admin/gallery-events/${id}`;
 
 // 🎥 Videos
 export const ADMIN_GET_VIDEOS = "/admin/videos";

@@ -19,6 +19,7 @@ import Videos from "../../pages/admin/Videos";
 import Skills from "../../pages/admin/Skills";
 import Offers from "../../pages/admin/Offers";
 import Placements from "../../pages/admin/Placements";
+import GalleryEvents from "../../pages/admin/GalleryEvents";
 
 export default function AppRoutes() {
   return (
@@ -176,6 +177,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Placements />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gallery-events"
+        element={
+          <ProtectedRoute>
+            <GalleryEvents />
           </ProtectedRoute>
         }
       />

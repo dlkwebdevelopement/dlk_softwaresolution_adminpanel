@@ -21,6 +21,7 @@ import {
   Youtube,
   Tag,
   Award,
+  Calendar,
 } from "lucide-react";
 
 const menuItems = [
@@ -36,6 +37,7 @@ const menuItems = [
   { text: "Offers", icon: <Tag size={20} />, path: "/offers" },
   { text: "Placements", icon: <Award size={20} />, path: "/placements" },
   { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
+  { text: "Gallery Events", icon: <Calendar size={20} />, path: "/gallery-events" },
   { text: "Skills", icon: <Briefcase size={20} />, path: "/skills" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
   { text: "Student Projects", icon: <FileText size={20} />, path: "/student-projects" },
