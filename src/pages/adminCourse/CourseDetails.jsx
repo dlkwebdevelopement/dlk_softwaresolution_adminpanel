@@ -54,7 +54,7 @@ const initialState = {
   discount_percentage: "",
   whoShouldEnroll: [{ content: "", order_index: 0 }],
   learningPoints: [{ content: "", order_index: 0 }],
-  curriculum: [{ title: "", order_index: 0 }],
+  curriculum: [{ title: "", lessons_info: "", description: "", link: "", order_index: 0 }],
   skills: [],
 };
 
@@ -126,10 +126,14 @@ export default function CourseDetails() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleArrayChange = (field, index, value) => {
+  const handleArrayChange = (field, index, value, subField = null) => {
     const updated = [...(formData[field] || [])];
     if (field === "curriculum") {
-      updated[index].title = value;
+      if (subField) {
+        updated[index][subField] = value;
+      } else {
+        updated[index].title = value;
+      }
     } else {
       updated[index].content = value;
     }
@@ -140,7 +144,7 @@ export default function CourseDetails() {
     if (field === "curriculum") {
       setFormData({
         ...formData,
-        curriculum: [...formData.curriculum, { title: "", order_index: 0 }],
+        curriculum: [...formData.curriculum, { title: "", lessons_info: "", description: "", link: "", order_index: 0 }],
       });
     } else {
       setFormData({
@@ -201,7 +205,12 @@ export default function CourseDetails() {
        
         whoShouldEnroll: data.whoShouldEnroll || [{ content: "", order_index: 0 }],
         learningPoints: data.learningPoints || [{ content: "", order_index: 0 }],
-        curriculum: data.curriculum || [{ title: "", order_index: 0 }],
+        curriculum: data.curriculum ? data.curriculum.map(item => ({
+          ...item,
+          lessons_info: item.lessons_info || "",
+          description: item.description || "",
+          link: item.link || ""
+        })) : [{ title: "", lessons_info: "", description: "", link: "", order_index: 0 }],
         skills: data.skills ? data.skills.map(s => s._id || s) : [],
       });
 
@@ -741,7 +750,7 @@ export default function CourseDetails() {
                 {formData.curriculum.map((item, index) => (
                   <div 
                     key={index} 
-                    className={`flex items-center gap-2 p-1.5 rounded-lg border transition-all ${draggedIndex === index ? 'opacity-50 bg-slate-50 border-emerald-300' : 'border-slate-100 hover:border-slate-200 bg-white'}`}
+                    className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${draggedIndex === index ? 'opacity-50 bg-slate-50 border-emerald-300' : 'border-slate-100 hover:border-slate-200 bg-white shadow-sm'}`}
                     draggable={true}
                     onDragStart={(e) => {
                       setDraggedIndex(index);
@@ -761,22 +770,46 @@ export default function CourseDetails() {
                     }}
                     onDragEnd={() => setDraggedIndex(null)}
                   >
-                    <div className="cursor-move text-slate-400 hover:text-slate-600 p-1" title="Drag to reorder">
-                      <GripVertical size={16} />
+                    <div className="flex items-center gap-2">
+                       <div className="cursor-move text-slate-400 hover:text-slate-600 p-1" title="Drag to reorder">
+                         <GripVertical size={16} />
+                       </div>
+                       <input
+                         value={item.title}
+                         onChange={(e) => handleArrayChange("curriculum", index, e.target.value)}
+                         placeholder="Module title..."
+                         className="flex-1 rounded-lg border-slate-200 border px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
+                       />
+                       <button 
+                         type="button"
+                         onClick={() => removeArrayItem("curriculum", index)}
+                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                       >
+                         <Trash2 size={16} />
+                       </button>
                     </div>
-                    <input
-                      value={item.title}
-                      onChange={(e) => handleArrayChange("curriculum", index, e.target.value)}
-                      placeholder="Module title..."
-                      className="flex-1 rounded-lg border-slate-200 border px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => removeArrayItem("curriculum", index)}
-                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+
+                    <div className="grid grid-cols-1 gap-2 pl-8">
+                       <input
+                        value={item.lessons_info}
+                        onChange={(e) => handleArrayChange("curriculum", index, e.target.value, "lessons_info")}
+                        placeholder="Info (e.g. 2 Lessons • 45 Min)"
+                        className="w-full rounded-lg border-slate-200 border px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
+                      />
+                      <textarea
+                        value={item.description}
+                        onChange={(e) => handleArrayChange("curriculum", index, e.target.value, "description")}
+                        placeholder="Module description... (Use new lines for bullet points)"
+                        rows={3}
+                        className="w-full rounded-lg border-slate-200 border px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all resize-y"
+                      />
+                      <input
+                        value={item.link}
+                        onChange={(e) => handleArrayChange("curriculum", index, e.target.value, "link")}
+                        placeholder="Resource Link (URL) e.g. https://..."
+                        className="w-full rounded-lg border-slate-200 border px-3 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
