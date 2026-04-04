@@ -122,8 +122,14 @@ export const ADMIN_DELETE_SKILLS = (id) => `/admin/skills/${id}`;
 
 // 🎓 Placements
 export const ADMIN_GET_PLACEMENTS = "/admin/placements";
-export const ADMIN_POST_PLACEMENTS = "/admin/placements";
+export const ADMIN_UPLOAD_PLACEMENT = "/admin/placements";
 export const ADMIN_UPDATE_PLACEMENT = (id) => `/admin/placements/${id}`;
 export const ADMIN_DELETE_PLACEMENT = (id) => `/admin/placements/${id}`;
-export const ADMIN_TOGGLE_PLACEMENT = (id) => `/admin/placements/${id}/toggle`;
+export const ADMIN_TOGGLE_PLACEMENT_ACTIVE = (id) => `/admin/placements/${id}/toggle`;
 export const ADMIN_REORDER_PLACEMENTS = "/admin/placements/reorder";
+
+// 📅 Workshops
+export const ADMIN_GET_WORKSHOPS = "/admin/workshops";
+export const ADMIN_POST_WORKSHOP = "/admin/workshops";
+export const ADMIN_UPDATE_WORKSHOP = (id) => `/admin/workshops/${id}`;
+export const ADMIN_DELETE_WORKSHOP = (id) => `/admin/workshops/${id}`;

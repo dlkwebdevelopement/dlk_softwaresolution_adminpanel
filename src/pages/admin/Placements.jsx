@@ -19,10 +19,10 @@ import Cropper from 'react-easy-crop';
 import { GetRequest, PostRequest, DeleteRequest, PutRequest, PatchRequest } from "../../apis/config";
 import { 
   ADMIN_GET_PLACEMENTS,
-  ADMIN_POST_PLACEMENTS,
+  ADMIN_UPLOAD_PLACEMENT,
   ADMIN_UPDATE_PLACEMENT,
   ADMIN_DELETE_PLACEMENT,
-  ADMIN_TOGGLE_PLACEMENT,
+  ADMIN_TOGGLE_PLACEMENT_ACTIVE,
   ADMIN_REORDER_PLACEMENTS
 } from "../../apis/endpoints";
 
@@ -141,7 +141,7 @@ export default function Placements() {
         await PutRequest(ADMIN_UPDATE_PLACEMENT(editingId), fd);
         alert("Placement updated successfully!");
       } else {
-        await PostRequest(ADMIN_POST_PLACEMENTS, fd);
+        await PostRequest(ADMIN_UPLOAD_PLACEMENT, fd);
         alert("Placement added successfully!");
       }
       resetForm();
@@ -166,7 +166,7 @@ export default function Placements() {
 
   const toggleStatus = async (id) => {
     try {
-      await PatchRequest(ADMIN_TOGGLE_PLACEMENT(id));
+      await PatchRequest(ADMIN_TOGGLE_PLACEMENT_ACTIVE(id));
       setList(prev => prev.map(item => item.id === id ? { ...item, isActive: !item.isActive } : item));
     } catch (err) {
       console.error("Toggle failed:", err);

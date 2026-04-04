@@ -32,6 +32,7 @@ const menuItems = [
   { text: "Categories", icon: <FolderTree size={20} />, path: "/categories" },
   { text: "Courses", icon: <BookOpen size={20} />, path: "/courses" },
   { text: "Live Classes", icon: <Video size={20} />, path: "/liveclass" },
+  { text: "Workshop", icon: <Calendar size={20} />, path: "/workshops-management" },
   { text: "Videos", icon: <Youtube size={20} />, path: "/videos" },
   { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
   { text: "Offers", icon: <Tag size={20} />, path: "/offers" },

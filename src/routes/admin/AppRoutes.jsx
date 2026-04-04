@@ -20,6 +20,7 @@ import Skills from "../../pages/admin/Skills";
 import Offers from "../../pages/admin/Offers";
 import Placements from "../../pages/admin/Placements";
 import GalleryEvents from "../../pages/admin/GalleryEvents";
+import WorkshopManagement from "../../pages/admin/WorkshopManagement";
 
 export default function AppRoutes() {
   return (
@@ -185,6 +186,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <GalleryEvents />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workshops-management"
+        element={
+          <ProtectedRoute>
+            <WorkshopManagement />
           </ProtectedRoute>
         }
       />
