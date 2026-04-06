@@ -24,6 +24,7 @@ import {
   DeleteRequest,
   PutRequest,
 } from "../../apis/config";
+import { BASE_URL } from "../../apis/api";
 
 import {
   ADMIN_GET_LIVE_CLASSES,
@@ -48,6 +49,7 @@ export default function LiveClasses() {
   const [durationDays, setDurationDays] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [image, setImage] = useState(null);
 
   // 🔹 Edit state
   const [editingId, setEditingId] = useState(null);
@@ -81,6 +83,7 @@ export default function LiveClasses() {
     setDurationDays("");
     setStartTime("");
     setEndTime("");
+    setImage(null);
     setEditingId(null);
     setView("list");
   };
@@ -98,22 +101,24 @@ export default function LiveClasses() {
       return alert("Please fill all required fields");
     }
 
-    const payload = {
-      courseId,
-      title,
-      startDate,
-      durationDays: Number(durationDays),
-      startTime,
-      endTime,
-    };
+    const formData = new FormData();
+    formData.append("courseId", courseId);
+    formData.append("title", title);
+    formData.append("startDate", startDate);
+    formData.append("durationDays", Number(durationDays));
+    formData.append("startTime", startTime);
+    formData.append("endTime", endTime);
+    if (image instanceof File) {
+      formData.append("image", image);
+    }
 
     try {
       setIsSubmitting(true);
       if (editingId) {
-        await PutRequest(ADMIN_UPDATE_LIVE_CLASSES(editingId), payload);
+        await PutRequest(ADMIN_UPDATE_LIVE_CLASSES(editingId), formData);
         alert("Live class updated successfully");
       } else {
-        await PostRequest(ADMIN_POST_LIVE_CLASSES, payload);
+        await PostRequest(ADMIN_POST_LIVE_CLASSES, formData);
         alert("Live class created successfully");
       }
 
@@ -140,6 +145,7 @@ export default function LiveClasses() {
     setDurationDays(c.durationDays);
     setStartTime(c.startTime);
     setEndTime(c.endTime);
+    setImage(c.image || null);
     setView("form");
   };
 
@@ -263,9 +269,15 @@ export default function LiveClasses() {
                       <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
-                              <Video className="w-6 h-6" />
-                            </div>
+                            {item.image ? (
+                              <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-sm group-hover:scale-110 transition-transform">
+                                <img src={`${BASE_URL}/${item.image}`} alt={item.title} className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
+                                <Video className="w-6 h-6" />
+                              </div>
+                            )}
                             <div>
                               <p className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{item.title}</p>
                               <div className="flex items-center gap-2 mt-1">
@@ -367,6 +379,21 @@ export default function LiveClasses() {
                         ))}
                       </select>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Live Class Image (Optional)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImage(e.target.files[0])}
+                      className="w-full rounded-2xl border-slate-200 border px-4 py-3 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 focus:outline-none transition-all font-medium file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                    />
+                    {image && typeof image === "string" && (
+                      <div className="mt-2 text-xs text-brand-600 font-medium">
+                        Current image: {image.split('/').pop()}
+                      </div>
+                    )}
                   </div>
                 </div>
 

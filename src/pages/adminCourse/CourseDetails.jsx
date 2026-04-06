@@ -55,6 +55,7 @@ const initialState = {
   whoShouldEnroll: [{ content: "", order_index: 0 }],
   learningPoints: [{ content: "", order_index: 0 }],
   curriculum: [{ title: "", lessons_info: "", description: "", link: "", order_index: 0 }],
+  courseIncludes: [{ text: "", icon_name: "PlayCircleFilled", order_index: 0 }],
   skills: [],
 };
 
@@ -127,16 +128,18 @@ export default function CourseDetails() {
   };
 
   const handleArrayChange = (field, index, value, subField = null) => {
-    const updated = [...(formData[field] || [])];
-    if (field === "curriculum") {
-      if (subField) {
-        updated[index][subField] = value;
-      } else {
-        updated[index].title = value;
+    const updated = formData[field].map((item, i) => {
+      if (i !== index) return item;
+      
+      if (field === "curriculum" || field === "courseIncludes") {
+        if (subField) {
+          return { ...item, [subField]: value };
+        } else {
+          return { ...item, title: value, text: value }; // Map default based on context
+        }
       }
-    } else {
-      updated[index].content = value;
-    }
+      return { ...item, content: value };
+    });
     setFormData({ ...formData, [field]: updated });
   };
 
@@ -145,6 +148,11 @@ export default function CourseDetails() {
       setFormData({
         ...formData,
         curriculum: [...formData.curriculum, { title: "", lessons_info: "", description: "", link: "", order_index: 0 }],
+      });
+    } else if (field === "courseIncludes") {
+      setFormData({
+        ...formData,
+        courseIncludes: [...formData.courseIncludes, { text: "", icon_name: "PlayCircleFilled", order_index: 0 }],
       });
     } else {
       setFormData({
@@ -211,6 +219,7 @@ export default function CourseDetails() {
           description: item.description || "",
           link: item.link || ""
         })) : [{ title: "", lessons_info: "", description: "", link: "", order_index: 0 }],
+        courseIncludes: data.courseIncludes || [{ text: "", icon_name: "PlayCircleFilled", order_index: 0 }],
         skills: data.skills ? data.skills.map(s => s._id || s) : [],
       });
 
@@ -232,14 +241,15 @@ export default function CourseDetails() {
         if (
           key === "whoShouldEnroll" ||
           key === "learningPoints" ||
-          key === "curriculum"
+          key === "curriculum" ||
+          key === "courseIncludes"
         ) {
           const cleanedArray = (formData[key] || [])
-            .filter((item) =>
-              key === "curriculum"
-                ? item.title && item.title.trim() !== ""
-                : item.content && item.content.trim() !== "",
-            )
+            .filter((item) => {
+              if (key === "curriculum") return item.title && item.title.trim() !== "";
+              if (key === "courseIncludes") return item.text && item.text.trim() !== "";
+              return item.content && item.content.trim() !== "";
+            })
             .map((item, idx) => {
               const newItem = { ...item };
               if (!newItem.id) delete newItem.id;
@@ -288,14 +298,15 @@ export default function CourseDetails() {
         if (
           key === "whoShouldEnroll" ||
           key === "learningPoints" ||
-          key === "curriculum"
+          key === "curriculum" ||
+          key === "courseIncludes"
         ) {
           const cleanedArray = (formData[key] || [])
-            .filter((item) =>
-              key === "curriculum"
-                ? item.title && item.title.trim() !== ""
-                : item.content && item.content.trim() !== "",
-            )
+            .filter((item) => {
+              if (key === "curriculum") return item.title && item.title.trim() !== "";
+              if (key === "courseIncludes") return item.text && item.text.trim() !== "";
+              return item.content && item.content.trim() !== "";
+            })
             .map((item, idx) => {
               const newItem = { ...item };
               if (!newItem.id) delete newItem.id;
@@ -730,6 +741,51 @@ export default function CourseDetails() {
                     >
                       <Trash2 size={16} />
                     </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Course Includes */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-md font-bold text-slate-800 uppercase tracking-wider text-xs">Course Includes</h3>
+                <button
+                  onClick={() => addArrayItem("courseIncludes")}
+                  className="p-1.5 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-md transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              <div className="space-y-2">
+                {formData.courseIncludes.map((item, index) => (
+                  <div key={index} className="space-y-2 p-2 border border-slate-100 rounded-lg bg-slate-50/50">
+                    <div className="flex gap-2">
+                      <select
+                        value={item.icon_name}
+                        onChange={(e) => handleArrayChange("courseIncludes", index, e.target.value, "icon_name")}
+                        className="w-1/3 rounded-lg border-slate-200 border px-2 py-2 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
+                      >
+                        <option value="PlayCircleFilled">Video</option>
+                        <option value="Download">Download</option>
+                        <option value="AllInclusive">Access</option>
+                        <option value="PhoneIphone">Mobile</option>
+                        <option value="WorkspacePremium">Certificate</option>
+                        <option value="CheckCircle">Check</option>
+                      </select>
+                      <button 
+                        onClick={() => removeArrayItem("courseIncludes", index)}
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-auto"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <input
+                      value={item.text}
+                      onChange={(e) => handleArrayChange("courseIncludes", index, e.target.value, "text")}
+                      placeholder="Include text... (e.g. 10 hours video)"
+                      className="w-full rounded-lg border-slate-200 border px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all"
+                    />
                   </div>
                 ))}
               </div>
