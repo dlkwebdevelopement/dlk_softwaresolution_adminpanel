@@ -145,5 +145,5 @@ export const ADMIN_DELETE_OFFICE_GALLERY_IMAGE = (id) => `/admin/office-gallery/
 // 📅 Office Gallery Events
 export const ADMIN_GET_ALL_OFFICE_GALLERY_EVENTS = "/admin/office-gallery-events";
 export const ADMIN_POST_OFFICE_GALLERY_EVENT = "/admin/office-gallery-events";
-export const ADMIN_PUT_OFFICE_GALLERY_EVENT = (id) => `/admin/office-gallery-event/${id}`;
-export const ADMIN_DELETE_OFFICE_GALLERY_EVENT = (id) => `/admin/office-gallery-event/${id}`;
+export const ADMIN_PUT_OFFICE_GALLERY_EVENT = (id) => `/admin/office-gallery-events/${id}`;
+export const ADMIN_DELETE_OFFICE_GALLERY_EVENT = (id) => `/admin/office-gallery-events/${id}`;
