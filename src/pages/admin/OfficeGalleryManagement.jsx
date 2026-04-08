@@ -24,12 +24,12 @@ import {
   PatchRequest,
 } from "../../apis/api";
 import {
-  ADMIN_GET_GALLERY,
-  ADMIN_CREATE_GALLERY,
-  ADMIN_UPDATE_GALLERY,
-  ADMIN_DELETE_GALLERY,
-  ADMIN_ADD_GALLERY_IMAGES,
-  ADMIN_DELETE_GALLERY_IMAGE,
+  ADMIN_GET_OFFICE_GALLERY,
+  ADMIN_CREATE_OFFICE_GALLERY,
+  ADMIN_UPDATE_OFFICE_GALLERY,
+  ADMIN_DELETE_OFFICE_GALLERY,
+  ADMIN_ADD_OFFICE_GALLERY_IMAGES,
+  ADMIN_DELETE_OFFICE_GALLERY_IMAGE,
 } from "../../apis/endpoints";
 import { BASE_URL } from "../../apis/api";
 
@@ -72,7 +72,7 @@ async function getCroppedImgBlob(imageSrc, pixelCrop) {
   });
 }
 
-export default function GalleryManagement() {
+export default function OfficeGalleryManagement() {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
@@ -107,14 +107,14 @@ export default function GalleryManagement() {
   const fetchGallery = async () => {
     setLoading(true);
     try {
-      const data = await GetRequest(ADMIN_GET_GALLERY);
+      const data = await GetRequest(ADMIN_GET_OFFICE_GALLERY);
       setAlbums(data);
       if (selectedAlbum) {
         const updated = data.find(a => a.id === selectedAlbum.id);
         if (updated) setSelectedAlbum(updated);
       }
     } catch (err) {
-      console.error("Failed to fetch gallery:", err);
+      console.error("Failed to fetch office gallery:", err);
     } finally {
       setLoading(false);
     }
@@ -136,7 +136,7 @@ export default function GalleryManagement() {
   const handleDeleteImage = async (albumId, imageUrl) => {
     if (!window.confirm("Delete this image permanently?")) return;
     try {
-      await DeleteRequest(ADMIN_DELETE_GALLERY_IMAGE(albumId), { data: { imageUrl } });
+      await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY_IMAGE(albumId), { data: { imageUrl } });
       fetchGallery();
     } catch (err) {
       alert("Failed to delete image");
@@ -144,9 +144,9 @@ export default function GalleryManagement() {
   };
 
   const handleDeleteAlbum = async (id) => {
-    if (!window.confirm("Delete this entire album and ALL its images? This cannot be undone.")) return;
+    if (!window.confirm("Delete this entire office album and ALL its images? This cannot be undone.")) return;
     try {
-      await DeleteRequest(ADMIN_DELETE_GALLERY(id));
+      await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY(id));
       fetchGallery();
     } catch (err) {
       alert("Failed to delete album");
@@ -156,11 +156,11 @@ export default function GalleryManagement() {
   const handleCreateAlbum = async () => {
     if (!newAlbumName.trim()) return alert("Name is required");
     if (!editingAlbumId && !newAlbumFile) return alert("Thumbnail is required for new albums");
-    
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append("albumName", newAlbumName.trim());
-    
+
     try {
       if (newAlbumFile) {
         const blob = await getCroppedImgBlob(newAlbumUrl, tempPixels);
@@ -168,11 +168,11 @@ export default function GalleryManagement() {
       }
 
       if (editingAlbumId) {
-        await PutRequest(ADMIN_UPDATE_GALLERY(editingAlbumId), formData);
+        await PutRequest(ADMIN_UPDATE_OFFICE_GALLERY(editingAlbumId), formData);
       } else {
-        await PostRequest(ADMIN_CREATE_GALLERY, formData);
+        await PostRequest(ADMIN_CREATE_OFFICE_GALLERY, formData);
       }
-      
+
       setIsAddAlbumModalOpen(false);
       setEditingAlbumId(null);
       setNewAlbumName("");
@@ -261,7 +261,7 @@ export default function GalleryManagement() {
     if (!selectedAlbum || selectionItems.length === 0) return;
     setIsUploading(true);
     const formData = new FormData();
-    
+
     try {
       for (let i = 0; i < selectionItems.length; i++) {
         const item = selectionItems[i];
@@ -269,7 +269,7 @@ export default function GalleryManagement() {
         formData.append("images", blob, `cropped_${Date.now()}_${i}.jpg`);
       }
 
-      await PostRequest(ADMIN_ADD_GALLERY_IMAGES(selectedAlbum.id), formData);
+      await PostRequest(ADMIN_ADD_OFFICE_GALLERY_IMAGES(selectedAlbum.id), formData);
       setSelectionItems([]);
       setIsPreviewModalOpen(false);
       fetchGallery();
@@ -284,8 +284,8 @@ export default function GalleryManagement() {
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Gallery Management</h1>
-          <p className="text-slate-500">Manage your website albums and images</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Office Gallery Management</h1>
+          <p className="text-slate-500">Manage your office media and workplace albums</p>
         </div>
         <button
           onClick={() => { setEditingAlbumId(null); setIsAddAlbumModalOpen(true); }}
@@ -317,17 +317,17 @@ export default function GalleryManagement() {
                   <tr key={album.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4">
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-                        <img 
-                          src={album.thumbnail || "https://via.placeholder.com/100?text=No+Thumb"} 
-                          alt="" 
+                        <img
+                          src={album.thumbnail || "https://via.placeholder.com/100?text=No+Thumb"}
+                          alt=""
                           className="w-full h-full object-cover"
                         />
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 group">
-                          <span className="font-medium text-slate-700">{album.albumName}</span>
-                        </div>
+                      <div className="flex items-center gap-2 group">
+                        <span className="font-medium text-slate-700">{album.albumName}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">
@@ -370,8 +370,8 @@ export default function GalleryManagement() {
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-slide-in">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-bold text-slate-900">{editingAlbumId ? "Edit Album" : "Create New Album"}</h2>
-              <button 
-                onClick={() => { setIsAddAlbumModalOpen(false); setEditingAlbumId(null); setNewAlbumName(""); setNewAlbumFile(null); setNewAlbumUrl(null); }} 
+              <button
+                onClick={() => { setIsAddAlbumModalOpen(false); setEditingAlbumId(null); setNewAlbumName(""); setNewAlbumFile(null); setNewAlbumUrl(null); }}
                 className="p-1 hover:bg-white rounded-full transition-colors"
               >
                 <X size={20} className="text-slate-400" />
@@ -380,9 +380,9 @@ export default function GalleryManagement() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Album Name</label>
-                <input 
-                  type="text" 
-                  value={newAlbumName} 
+                <input
+                  type="text"
+                  value={newAlbumName}
                   onChange={(e) => setNewAlbumName(e.target.value)}
                   className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
                   placeholder="Enter album name..."
@@ -390,9 +390,9 @@ export default function GalleryManagement() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Thumbnail</label>
-                <input 
-                  type="file" 
-                  accept="image/*" 
+                <input
+                  type="file"
+                  accept="image/*"
                   onChange={(e) => {
                     if (e.target.files[0]) {
                       setNewAlbumFile(e.target.files[0]);
@@ -419,7 +419,7 @@ export default function GalleryManagement() {
             </div>
             <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setIsAddAlbumModalOpen(false)} className="px-4 py-2 text-slate-600 font-medium">Cancel</button>
-              <button 
+              <button
                 onClick={handleCreateAlbum}
                 disabled={isUploading}
                 className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 disabled:opacity-50"
@@ -461,7 +461,7 @@ export default function GalleryManagement() {
                   <div key={idx} className="aspect-square relative rounded-xl overflow-hidden group shadow-sm border border-slate-200 bg-white">
                     <img src={img} alt="" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button 
+                      <button
                         onClick={() => handleDeleteImage(selectedAlbum.id, img)}
                         className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transform scale-75 group-hover:scale-100 transition-all shadow-lg"
                       >
@@ -472,9 +472,9 @@ export default function GalleryManagement() {
                 ))}
               </div>
             </div>
-            
+
             <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end">
-              <button 
+              <button
                 onClick={() => setIsViewModalOpen(false)}
                 className="px-6 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors"
               >
@@ -530,18 +530,17 @@ export default function GalleryManagement() {
                       <button
                         key={ratio.label}
                         onClick={() => setTempAspect(ratio.value)}
-                        className={`px-3 py-1 text-xs font-semibold rounded-md border transition-all ${
-                          tempAspect === ratio.value
+                        className={`px-3 py-1 text-xs font-semibold rounded-md border transition-all ${tempAspect === ratio.value
                             ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
                             : 'bg-white text-slate-600 border-slate-200 hover:border-brand-500'
-                        }`}
+                          }`}
                       >
                         {ratio.label}
                       </button>
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4 flex-1 max-w-sm">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Zoom</span>
                   <input
@@ -573,7 +572,7 @@ export default function GalleryManagement() {
                     <RotateCcw size={16} /> Reset
                   </button>
                 </div>
-                
+
                 <button
                   onClick={handleSaveCrop}
                   className="inline-flex items-center gap-2 px-8 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
@@ -607,13 +606,13 @@ export default function GalleryManagement() {
                     <div className="aspect-square relative rounded-2xl overflow-hidden shadow-md border-2 border-white bg-white group-hover:border-brand-500 transition-all">
                       <img src={item.previewUrl} alt="" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button 
+                        <button
                           onClick={() => openCropper(idx)}
                           className="p-2.5 bg-white text-brand-600 rounded-xl hover:bg-brand-50 transform translate-y-2 group-hover:translate-y-0 transition-all shadow-lg font-bold text-xs flex items-center gap-1"
                         >
                           <Edit2 size={14} /> Re-edit
                         </button>
-                        <button 
+                        <button
                           onClick={() => removeSelection(idx)}
                           className="p-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transform translate-y-2 group-hover:translate-y-0 transition-all shadow-lg delay-75"
                         >
@@ -630,7 +629,7 @@ export default function GalleryManagement() {
 
                 {/* Quick Add More while in preview */}
                 <label className="aspect-square border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-all group">
-                  <input type="file" multiple accept="image/*" className="hidden" 
+                  <input type="file" multiple accept="image/*" className="hidden"
                     onChange={(e) => {
                       const files = Array.from(e.target.files);
                       const newItems = files.map(file => ({
@@ -645,7 +644,7 @@ export default function GalleryManagement() {
                       const updated = [...selectionItems, ...newItems];
                       setSelectionItems(updated);
                       openCropper(selectionItems.length, updated);
-                    }} 
+                    }}
                   />
                   <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-brand-100 flex items-center justify-center text-slate-400 group-hover:text-brand-600 transition-colors">
                     <Plus size={24} />
@@ -661,13 +660,13 @@ export default function GalleryManagement() {
                 <span className="text-sm font-medium">{selectionItems.length} images ready to be saved</span>
               </div>
               <div className="flex gap-3">
-                <button 
+                <button
                   onClick={() => { setSelectionItems([]); setIsPreviewModalOpen(false); }}
                   className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
                 >
                   Discard All
                 </button>
-                <button 
+                <button
                   onClick={handleFinalUpload}
                   className="px-10 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-500/30 flex items-center gap-2"
                 >
@@ -685,8 +684,8 @@ export default function GalleryManagement() {
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
               <h2 className="text-xl font-bold text-slate-900">Add New Album</h2>
-              <button 
-                onClick={() => { setIsAddAlbumModalOpen(false); setNewAlbumUrl(null); }} 
+              <button
+                onClick={() => { setIsAddAlbumModalOpen(false); setNewAlbumUrl(null); }}
                 className="p-2 hover:bg-slate-100 rounded-full transition-colors"
               >
                 <X size={20} className="text-slate-400" />
@@ -709,17 +708,17 @@ export default function GalleryManagement() {
                 <label className="block text-sm font-bold text-slate-700 mb-2">Album Thumbnail</label>
                 {!newAlbumUrl ? (
                   <label className="w-full aspect-video border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-all group">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
                       onChange={(e) => {
                         if (e.target.files?.[0]) {
                           setNewAlbumFile(e.target.files[0]);
                           setNewAlbumUrl(URL.createObjectURL(e.target.files[0]));
                           setIsAddAlbumCropping(true);
                         }
-                      }} 
+                      }}
                     />
                     <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-brand-100 flex items-center justify-center text-slate-400 group-hover:text-brand-600 transition-colors">
                       <Upload size={20} />
@@ -739,7 +738,7 @@ export default function GalleryManagement() {
                           onCropComplete={onCropComplete}
                           onZoomChange={setTempZoom}
                         />
-                        <button 
+                        <button
                           onClick={() => setIsAddAlbumCropping(false)}
                           className="absolute bottom-4 right-4 px-4 py-2 bg-brand-600 text-white rounded-lg text-xs font-bold shadow-lg"
                         >
@@ -748,19 +747,19 @@ export default function GalleryManagement() {
                       </div>
                     ) : (
                       <>
-                        <img 
-                          src={newAlbumUrl} 
-                          className="w-full h-full object-cover" 
-                          alt="Preview" 
+                        <img
+                          src={newAlbumUrl}
+                          className="w-full h-full object-cover"
+                          alt="Preview"
                         />
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2">
-                          <button 
+                          <button
                             onClick={() => setIsAddAlbumCropping(true)}
                             className="p-2 bg-white text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"
                           >
                             <Edit2 size={16} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => { setNewAlbumUrl(null); setNewAlbumFile(null); }}
                             className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                           >
@@ -775,13 +774,13 @@ export default function GalleryManagement() {
             </div>
 
             <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
-              <button 
-                onClick={() => { setIsAddAlbumModalOpen(false); setEditingAlbumId(null); setNewAlbumName(""); setNewAlbumFile(null); setNewAlbumUrl(null); }} 
+              <button
+                onClick={() => { setIsAddAlbumModalOpen(false); setEditingAlbumId(null); setNewAlbumName(""); setNewAlbumFile(null); setNewAlbumUrl(null); }}
                 className="flex-1 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleCreateAlbum}
                 disabled={isUploading || isAddAlbumCropping}
                 className="flex-[2] py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-500/30 disabled:opacity-50"

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
-import { 
-  Edit2, 
-  Trash2, 
-  Loader2, 
+import {
+  Edit2,
+  Trash2,
+  Loader2,
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
@@ -18,11 +18,11 @@ import {
 } from "lucide-react";
 
 import {
-  ADMIN_GET_GALLERY,
-  ADMIN_GET_ALL_GALLERY_EVENTS,
-  ADMIN_POST_GALLERY_EVENT,
-  ADMIN_PUT_GALLERY_EVENT,
-  ADMIN_DELETE_GALLERY_EVENT
+  ADMIN_GET_OFFICE_GALLERY,
+  ADMIN_GET_ALL_OFFICE_GALLERY_EVENTS,
+  ADMIN_POST_OFFICE_GALLERY_EVENT,
+  ADMIN_PUT_OFFICE_GALLERY_EVENT,
+  ADMIN_DELETE_OFFICE_GALLERY_EVENT
 } from "../../apis/endpoints";
 
 import {
@@ -32,7 +32,7 @@ import {
   DeleteRequest,
 } from "../../apis/api";
 
-export default function GalleryEvents() {
+export default function OfficeGalleryEvents() {
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -64,22 +64,22 @@ export default function GalleryEvents() {
 
   const fetchCategories = async () => {
     try {
-      const res = await GetRequest(ADMIN_GET_GALLERY);
+      const res = await GetRequest(ADMIN_GET_OFFICE_GALLERY);
       setCategories(res || []);
     } catch (err) {
-      console.error("Fetch Categories Error:", err);
+      console.error("Fetch Office Categories Error:", err);
     }
   };
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const res = await GetRequest(ADMIN_GET_ALL_GALLERY_EVENTS);
+      const res = await GetRequest(ADMIN_GET_ALL_OFFICE_GALLERY_EVENTS);
       if (res.success) {
         setEvents(res.data || []);
       }
     } catch (err) {
-      console.error("Fetch Events Error:", err);
+      console.error("Fetch Office Events Error:", err);
     } finally {
       setLoading(false);
     }
@@ -103,16 +103,16 @@ export default function GalleryEvents() {
     setEditingEventId(event.id);
     setCategoryId(event.categoryId?._id || event.categoryId || "");
     setTitle(event.title);
-    
+
     const d = new Date(event.eventDate);
     setEventDate(d.toISOString().split('T')[0]);
-    
+
     setEventTime(event.eventTime);
     setMainImagePreview(event.mainImage);
     // Load existing gallery images as URL strings
     setExistingGalleryImages(event.galleryImages || []);
     setGalleryImages([]); // new uploads start empty
-    
+
     setIsFormVisible(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -159,13 +159,13 @@ export default function GalleryEvents() {
     try {
       if (croppedAreaPixels) {
         const croppedFile = await getCroppedImg(cropImage, croppedAreaPixels);
-        
+
         // Revoke old preview if exists
         if (mainImagePreview) URL.revokeObjectURL(mainImagePreview);
-        
+
         const previewUrl = URL.createObjectURL(croppedFile);
         console.log("Setting main image preview:", previewUrl);
-        
+
         setMainImage(croppedFile);
         setMainImagePreview(previewUrl);
         setCropModalVisible(false);
@@ -191,7 +191,7 @@ export default function GalleryEvents() {
     formData.append("title", title);
     formData.append("eventDate", eventDate);
     formData.append("eventTime", eventTime);
-    
+
     if (mainImage) {
       formData.append("mainImage", mainImage);
     }
@@ -206,9 +206,9 @@ export default function GalleryEvents() {
     try {
       let res;
       if (editingEventId) {
-        res = await PutRequest(ADMIN_PUT_GALLERY_EVENT(editingEventId), formData);
+        res = await PutRequest(ADMIN_PUT_OFFICE_GALLERY_EVENT(editingEventId), formData);
       } else {
-        res = await PostRequest(ADMIN_POST_GALLERY_EVENT, formData);
+        res = await PostRequest(ADMIN_POST_OFFICE_GALLERY_EVENT, formData);
       }
 
       if (res.success) {
@@ -227,12 +227,12 @@ export default function GalleryEvents() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this gallery event?")) return;
     try {
-      const res = await DeleteRequest(ADMIN_DELETE_GALLERY_EVENT(id));
+      const res = await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY_EVENT(id));
       if (res.success) {
         fetchEvents();
       }
     } catch (err) {
-      console.error("Delete Event Error:", err);
+      console.error("Delete Office Event Error:", err);
     }
   };
 
@@ -240,8 +240,8 @@ export default function GalleryEvents() {
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Gallery Events Management</h1>
-          <p className="text-slate-500">Create and manage event-based gallery posts</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Office Gallery Events</h1>
+          <p className="text-slate-500">Create and manage office-specific event galleries</p>
         </div>
         {!isFormVisible && (
           <button
@@ -262,7 +262,7 @@ export default function GalleryEvents() {
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="p-6 md:p-8 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
@@ -354,8 +354,8 @@ export default function GalleryEvents() {
                     <div key={`existing-${idx}`} className="aspect-square relative rounded-lg overflow-hidden group border-2 border-brand-200">
                       <img src={url} className="w-full h-full object-cover" alt="" />
                       <div className="absolute top-1 left-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Saved</div>
-                      <button 
-                        onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))} 
+                      <button
+                        onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))}
                         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={12} />
@@ -368,11 +368,11 @@ export default function GalleryEvents() {
                     <div key={`new-${idx}`} className="aspect-square relative rounded-lg overflow-hidden group border-2 border-dashed border-slate-300">
                       <img src={imgObj.preview} className="w-full h-full object-cover" alt="" />
                       <div className="absolute top-1 left-1 bg-slate-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">New</div>
-                      <button 
+                      <button
                         onClick={() => {
                           URL.revokeObjectURL(imgObj.preview);
                           setGalleryImages(prev => prev.filter((_, i) => i !== idx));
-                        }} 
+                        }}
                         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={12} />
@@ -382,11 +382,11 @@ export default function GalleryEvents() {
 
                   {/* Add more button */}
                   <label className="aspect-square border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white transition-all text-slate-400 hover:text-brand-500">
-                    <input 
-                      type="file" 
-                      multiple 
-                      accept="image/*" 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
                       onChange={(e) => {
                         const files = Array.from(e.target.files);
                         const newImages = files.map(file => ({
@@ -409,13 +409,13 @@ export default function GalleryEvents() {
             </div>
 
             <div className="flex gap-4 pt-4">
-                <button 
-                  onClick={handleSubmit} 
-                  disabled={isUploading}
-                  className="flex-1 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : editingEventId ? "Update Event Gallery" : "Save Event Gallery"}
-                </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isUploading}
+                className="flex-1 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : editingEventId ? "Update Event Gallery" : "Save Event Gallery"}
+              </button>
               <button onClick={resetForm} className="px-8 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
             </div>
           </div>

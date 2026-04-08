@@ -19,7 +19,7 @@ import {
   ChevronRight,
   ArrowLeft
 } from "lucide-react";
-import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/config";
+import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/api";
 import {
   ADMIN_GET_ALL_CONTACTS,
   ADMIN_DELETE_CONTACTS,

@@ -20,6 +20,8 @@ import Skills from "../../pages/admin/Skills";
 import Offers from "../../pages/admin/Offers";
 import Placements from "../../pages/admin/Placements";
 import GalleryEvents from "../../pages/admin/GalleryEvents";
+import OfficeGalleryManagement from "../../pages/admin/OfficeGalleryManagement";
+import OfficeGalleryEvents from "../../pages/admin/OfficeGalleryEvents";
 import WorkshopManagement from "../../pages/admin/WorkshopManagement";
 
 export default function AppRoutes() {
@@ -27,7 +29,7 @@ export default function AppRoutes() {
     <Routes>
       {/* Public Route */}
       <Route path="/login" element={<Login />} />
-      
+
       {/* Protected Routes */}
       <Route
         path="/"
@@ -194,6 +196,22 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <WorkshopManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/office-gallery"
+        element={
+          <ProtectedRoute>
+            <OfficeGalleryManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/office-gallery-events"
+        element={
+          <ProtectedRoute>
+            <OfficeGalleryEvents />
           </ProtectedRoute>
         }
       />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; 
-import { GetRequest } from "../../apis/config";
+import { GetRequest } from "../../apis/api";
 import { 
   ADMIN_GET_ENQUIRIES,
   ADMIN_GET_ALL_CONTACTS,

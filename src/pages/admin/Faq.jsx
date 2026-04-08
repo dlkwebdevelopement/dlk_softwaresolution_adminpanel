@@ -15,7 +15,7 @@ import {
   PostRequest,
   DeleteRequest,
   PutRequest,
-} from "../../apis/config";
+} from "../../apis/api";
 import {
   ADMIN_ADD_QUESTION,
   ADMIN_ADD_ANSWER,

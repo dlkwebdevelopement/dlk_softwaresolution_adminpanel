@@ -32,8 +32,7 @@ import {
   PostRequest,
   PutRequest,
   DeleteRequest,
-} from "../../apis/config";
-import { BASE_URL } from "../../apis/api";
+} from "../../apis/api";
 
 export default function StudentProjects() {
   const [studentProjects, setStudentProjects] = useState([]);
@@ -153,7 +152,7 @@ export default function StudentProjects() {
   };
 
 
-  // Fetch blogs list
+  // Fetch projects list
   const fetchStudentProjects = async () => {
     setLoading(true);
     try {
@@ -241,7 +240,7 @@ export default function StudentProjects() {
     setIsFormVisible(false);
   };
 
-  // Submit blog
+  // Submit project
   const handleSubmit = async () => {
     // 1️⃣ Basic validation
     if (
@@ -278,10 +277,10 @@ export default function StudentProjects() {
       let res;
 
       if (editId) {
-        // 🔹 Update existing blog
+        // 🔹 Update existing project
         res = await PutRequest(ADMIN_UPDATE_STUDENT_PROJECTS(editId), formData);
       } else {
-        // 🔹 Create new blog
+        // 🔹 Create new project
         res = await PostRequest(ADMIN_POST_STUDENT_PROJECTS, formData);
       }
 
@@ -352,7 +351,7 @@ export default function StudentProjects() {
           <h1 className="text-2xl font-bold text-slate-900 mb-2">
             Student Projects Management
           </h1>
-          <p className="text-slate-500">Manage your insightful articles and news</p>
+          <p className="text-slate-500">Manage your student success stories and projects</p>
         </div>
         
         {!isFormVisible && (
@@ -369,12 +368,12 @@ export default function StudentProjects() {
         )}
       </div>
 
-      {/* 🔹 Blog Form */}
+      {/* 🔹 Project Form */}
       {isFormVisible && (
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden mb-12 animate-in slide-in-from-top-4 duration-300">
           <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-800">
-              {editId ? "Update student project" : "Create New Project"}
+              {editId ? "Update Student Project" : "Create New Project"}
             </h2>
             <button 
               onClick={() => setIsFormVisible(false)}
@@ -405,7 +404,7 @@ export default function StudentProjects() {
                   <label className="text-sm font-medium text-slate-700">Slug Preview</label>
                   <div className="w-full rounded-lg bg-slate-50 border-slate-200 border px-4 py-2.5 text-slate-400 font-mono text-sm flex items-center gap-2 overflow-hidden">
                     <span className="opacity-50">/</span>
-                    <span className="truncate">{title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') || 'your-blog-slug'}</span>
+                    <span className="truncate">{title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') || 'your-project-slug'}</span>
                   </div>
                 </div>
 
@@ -416,7 +415,7 @@ export default function StudentProjects() {
                     onChange={(e) => setShortDescription(e.target.value)}
                     disabled={fetchingProject}
                     rows={2}
-                    placeholder="A brief summary that appears on the blog listing page"
+                    placeholder="A brief summary that appears on the project listing page"
                     className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-500 resize-y"
                   />
                 </div>
@@ -585,7 +584,7 @@ export default function StudentProjects() {
             <FileText className="w-12 h-12 text-slate-300" />
           </div>
           <h3 className="text-slate-700 font-bold text-xl mb-1">No projects found</h3>
-          <p className="text-slate-500 max-w-xs mx-auto mb-6">Start by creating your first insights-filled student project.</p>
+          <p className="text-slate-500 max-w-xs mx-auto mb-6">Start by creating your first student success story.</p>
           <button
             onClick={() => setIsFormVisible(true)}
             className="text-brand-600 font-bold hover:underline"

@@ -9,7 +9,7 @@ import {
   ArrowLeft,
   Upload
 } from "lucide-react";
-import { GetRequest, PostRequest, DeleteRequest, PutRequest } from "../../apis/config";
+import { GetRequest, PostRequest, DeleteRequest, PutRequest } from "../../apis/api";
 import { 
   ADMIN_GET_SKILLS, 
   ADMIN_POST_SKILLS, 

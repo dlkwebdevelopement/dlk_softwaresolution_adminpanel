@@ -16,7 +16,7 @@ import {
   PostRequest,
   DeleteRequest,
   PutRequest,
-} from "../../apis/config";
+} from "../../apis/api";
 
 import {
   ADMIN_GET_ALL_TESIMONIALS,

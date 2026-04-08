@@ -32,7 +32,7 @@ import {
   PostRequest,
   PutRequest,
   DeleteRequest,
-} from "../../apis/config";
+} from "../../apis/api";
 
 export default function WorkshopManagement() {
   const [workshops, setWorkshops] = useState([]);

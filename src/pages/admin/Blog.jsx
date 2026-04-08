@@ -31,7 +31,7 @@ import {
   PostRequest,
   PutRequest,
   DeleteRequest,
-} from "../../apis/config";
+} from "../../apis/api";
 import { BASE_URL } from "../../apis/api";
 
 export default function Blog() {

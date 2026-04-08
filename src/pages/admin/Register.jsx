@@ -21,7 +21,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/config";
+import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/api";
 import {
   ADMIN_GET_REGISTER,
   ADMIN_MARK_REGISTER_READ,

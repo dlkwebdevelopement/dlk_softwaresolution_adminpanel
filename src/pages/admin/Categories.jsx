@@ -17,7 +17,7 @@ import {
   PostRequest,
   DeleteRequest,
   PutRequest,
-} from "../../apis/config";
+} from "../../apis/api";
 import {
   ADMIN_GET_CATEGORIES,
   ADMIN_CREATE_CATEGORY,

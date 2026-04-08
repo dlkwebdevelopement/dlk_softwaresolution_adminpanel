@@ -39,6 +39,8 @@ const menuItems = [
   { text: "Placements", icon: <Award size={20} />, path: "/placements" },
   { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
   { text: "Gallery Events", icon: <Calendar size={20} />, path: "/gallery-events" },
+  { text: "Office Gallery", icon: <ImageIcon size={20} />, path: "/office-gallery" },
+  { text: "Office Events", icon: <Calendar size={20} />, path: "/office-gallery-events" },
   { text: "Skills", icon: <Briefcase size={20} />, path: "/skills" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
   { text: "Student Projects", icon: <FileText size={20} />, path: "/student-projects" },
@@ -50,19 +52,18 @@ const menuItems = [
 const SidebarItem = ({ icon, text, path, subItems }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const isActive = location.pathname.includes(path);
-  
+
   if (subItems) {
     return (
       <div className="mb-1">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors duration-200 group ${
-            isActive || isOpen
-              ? "bg-slate-800 text-white" 
+          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors duration-200 group ${isActive || isOpen
+              ? "bg-slate-800 text-white"
               : "text-slate-400 hover:bg-slate-800 hover:text-white"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-3">
             <span className={`${isActive || isOpen ? "text-brand-500" : "text-slate-500 group-hover:text-brand-400"}`}>
@@ -72,7 +73,7 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
           </div>
           {isOpen ? <ChevronDown size={16} className="text-slate-500" /> : <ChevronRight size={16} className="text-slate-500" />}
         </button>
-        
+
         {/* Dropdown Content */}
         {isOpen && (
           <div className="mt-1 ml-4 pl-4 border-l border-slate-700/50 space-y-1 py-1 animate-fade-in">
@@ -80,11 +81,10 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
               <Link
                 key={index}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${
-                  location.pathname === item.path || (item.path !== '/' && location.pathname.includes(item.path))
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${location.pathname === item.path || (item.path !== '/' && location.pathname.includes(item.path))
                     ? "bg-brand-500/10 text-brand-400 font-medium"
                     : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                }`}
+                  }`}
               >
                 {item.icon && <span className="text-slate-500">{item.icon}</span>}
                 <span>{item.text}</span>
@@ -99,11 +99,10 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
   return (
     <Link
       to={path}
-      className={`flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg transition-colors duration-200 group ${
-        isActive
-          ? "bg-brand-500/10 text-brand-400 font-medium" 
+      className={`flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg transition-colors duration-200 group ${isActive
+          ? "bg-brand-500/10 text-brand-400 font-medium"
           : "text-slate-400 hover:bg-slate-800 hover:text-white"
-      }`}
+        }`}
     >
       <span className={`${isActive ? "text-brand-500" : "text-slate-500 group-hover:text-brand-400"}`}>
         {icon}
@@ -124,7 +123,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
           <span className="font-bold text-lg tracking-wide">DLK Admin</span>
         </div>
-        <button 
+        <button
           onClick={onClose}
           className="p-1 rounded-lg hover:bg-slate-800 md:hidden"
         >
@@ -138,18 +137,18 @@ const Sidebar = ({ isOpen, onClose }) => {
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Navigation Terminal</span>
         </div>
 
-        <nav className="space-y-1 mb-8" onClick={() => { if(window.innerWidth < 768) onClose(); }}>
+        <nav className="space-y-1 mb-8" onClick={() => { if (window.innerWidth < 768) onClose(); }}>
           {menuItems.map((item, index) => (
-            <SidebarItem 
+            <SidebarItem
               key={index}
-              icon={item.icon} 
-              text={item.text} 
-              path={item.path} 
+              icon={item.icon}
+              text={item.text}
+              path={item.path}
             />
           ))}
         </nav>
       </div>
-      
+
       {/* Footer Info */}
       <div className="p-4 border-t border-sidebar-border/50 bg-slate-900/50">
         <div className="bg-slate-800 rounded-lg p-3 text-sm flex items-center gap-3">

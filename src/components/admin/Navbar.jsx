@@ -186,4 +186,4 @@ const Navbar = ({ onToggleSidebar }) => {
   );
 };
 
-export default Navbar;
+export default Navbar;
