@@ -8,7 +8,8 @@ import {
   HelpCircle,
   MessageSquare,
   Search,
-  ChevronDown
+  ChevronDown,
+  MessageCircle
 } from "lucide-react";
 import {
   GetRequest,
@@ -18,76 +19,101 @@ import {
 } from "../../apis/api";
 import {
   ADMIN_ADD_QUESTION,
-  ADMIN_ADD_ANSWER,
   ADMIN_GET_ALL_QUESTIONS,
   ADMIN_UPDATE_QUESTION,
-  ADMIN_UPDATE_ANSWER,
   ADMIN_DELETE_QUESTION,
-  ADMIN_DELETE_ANSWER,
 } from "../../apis/endpoints";
 
 export default function Faq() {
   const [questions, setQuestions] = useState([]);
   const [qVal, setQVal] = useState("");
   const [ansVal, setAnsVal] = useState("");
-  const [selectedQ, setSelectedQ] = useState(null);
   const [editingQ, setEditingQ] = useState(null);
-  const [editingA, setEditingA] = useState(null);
-  const [editVal, setEditVal] = useState("");
+  const [editQVal, setEditQVal] = useState("");
+  const [editAnsVal, setEditAnsVal] = useState("");
   const [expandedQ, setExpandedQ] = useState(null);
   
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetch = async () => setQuestions(await GetRequest(ADMIN_GET_ALL_QUESTIONS));
+  const fetch = async () => {
+    try {
+      const data = await GetRequest(ADMIN_GET_ALL_QUESTIONS);
+      setQuestions(data || []);
+    } catch (err) {
+      console.error("Fetch FAQ error:", err);
+    }
+  };
+
   useEffect(() => { fetch(); }, []);
 
-  const addQuestion = async () => {
-    if (!qVal.trim()) return;
-    await PostRequest(ADMIN_ADD_QUESTION, { question: qVal });
-    setQVal(""); fetch();
-    setShowForm(false);
+  const handleAddFaq = async () => {
+    if (!qVal.trim() || !ansVal.trim()) {
+      alert("Both question and answer are required");
+      return;
+    }
+    try {
+      await PostRequest(ADMIN_ADD_QUESTION, { question: qVal, answer: ansVal });
+      setQVal(""); 
+      setAnsVal("");
+      fetch();
+      setShowForm(false);
+      alert("New FAQ added successfully!");
+    } catch (err) {
+      console.error("Add FAQ error:", err);
+      alert("Failed to add FAQ. Make sure both fields are filled.");
+    }
   };
 
-  const addAnswer = async () => {
-    if (!ansVal.trim() || !selectedQ) return;
-    await PostRequest(ADMIN_ADD_ANSWER, { answer: ansVal, question_id: selectedQ });
-    setAnsVal(""); 
-    setExpandedQ(selectedQ); // Expand to show the newly added answer
-    fetch();
-    setShowForm(false);
+  const startEdit = (q) => { 
+    setEditingQ(q._id || q.id); 
+    setEditQVal(q.question || ""); 
+    setEditAnsVal(q.answer || "");
   };
 
-  const startEditQuestion = (q) => { setEditingQ(q.id); setEditVal(q.question); };
-  const saveQuestion = async (id) => {
-    if (!editVal.trim()) return;
-    await PutRequest(ADMIN_UPDATE_QUESTION(id), { question: editVal.trim() });
-    cancelEdit(); fetch();
+  const saveEdit = async (id) => {
+    const trimmedQ = editQVal?.trim();
+    const trimmedAns = editAnsVal?.trim();
+    
+    if (!trimmedQ || !trimmedAns) {
+      alert("Both question and answer are required to save.");
+      return;
+    }
+
+    try {
+      const targetId = id || editingQ;
+      await PutRequest(ADMIN_UPDATE_QUESTION(targetId), { 
+        question: trimmedQ,
+        answer: trimmedAns
+      });
+      setEditingQ(null);
+      fetch();
+      alert("Changes saved successfully!");
+    } catch (err) {
+      console.error("Update FAQ error:", err);
+      alert("Failed to update FAQ. Error: " + (err.response?.data?.message || err.message));
+    }
   };
 
-  const startEditAnswer = (a) => { setEditingA(a.id); setEditVal(a.answer); };
-  const saveAnswer = async (id) => {
-    if (!editVal.trim()) return;
-    await PutRequest(ADMIN_UPDATE_ANSWER(id), { answer: editVal.trim() });
-    cancelEdit(); fetch();
+  const cancelEdit = () => { 
+    setEditingQ(null); 
+    setEditQVal(""); 
+    setEditAnsVal("");
   };
 
-  const cancelEdit = () => { setEditingQ(null); setEditingA(null); setEditVal(""); };
-
-  const removeQuestion = async (id) => {
-    if (!confirm("Delete question?")) return;
-    await DeleteRequest(ADMIN_DELETE_QUESTION(id)); fetch();
-    if (selectedQ === id) setSelectedQ(null);
-    if (expandedQ === id) setExpandedQ(null);
-  };
-
-  const removeAnswer = async (id) => {
-    if (!confirm("Delete answer?")) return;
-    await DeleteRequest(ADMIN_DELETE_ANSWER(id)); fetch();
+  const removeFaq = async (id) => {
+    if (!confirm("Delete this FAQ?")) return;
+    try {
+      await DeleteRequest(ADMIN_DELETE_QUESTION(id));
+      fetch();
+      alert("Deleted successfully.");
+    } catch (err) {
+      console.error("Delete FAQ error:", err);
+      alert("Failed to delete.");
+    }
   };
 
   const toggleExpand = (id) => {
-    if (editingQ) return; // Don't toggle while editing
     setExpandedQ(expandedQ === id ? null : id);
   };
 
@@ -96,10 +122,13 @@ export default function Faq() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">FAQ Management</h1>
-          <p className="text-slate-500">Create, edit and manage frequently asked questions and answers.</p>
+          <p className="text-slate-500">Create, edit and manage your FAQ directory in one streamlined interface.</p>
         </div>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            if (editingQ) cancelEdit();
+          }}
           className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-lg ${
             showForm 
               ? 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-slate-100' 
@@ -107,7 +136,7 @@ export default function Faq() {
           }`}
         >
           {showForm ? <X size={20} /> : <PlusCircle size={20} />}
-          {showForm ? "Cancel & Close" : "Add FAQ Item"}
+          {showForm ? "Cancel" : "Add New FAQ"}
         </button>
       </div>
 
@@ -115,70 +144,48 @@ export default function Faq() {
       {showForm && (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-10 overflow-hidden animate-slide-up">
           <div className="p-6 md:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Add Question Side */}
-              <div className="border border-slate-200 rounded-xl p-6 bg-slate-50">
-                  <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                    <PlusCircle className="w-5 h-5 text-brand-600" />
-                    Add New Question
-                  </h2>
-                  
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={qVal}
-                      onChange={(e) => setQVal(e.target.value)}
-                      placeholder="Enter new question..."
-                      className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all hover:bg-white"
-                      onKeyDown={(e) => e.key === 'Enter' && addQuestion()}
-                    />
-                    <button 
-                      onClick={addQuestion}
-                      disabled={!qVal.trim()}
-                      className="w-full bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors shadow-sm"
-                    >
-                      Publish Question
-                    </button>
-                  </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <PlusCircle className="w-5 h-5 text-brand-600" />
+              Create New FAQ Entry
+            </h2>
+            
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Question</label>
+                <input
+                  type="text"
+                  value={qVal}
+                  onChange={(e) => setQVal(e.target.value)}
+                  placeholder="e.g. Do you provide certificates?"
+                  className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Answer</label>
+                <textarea
+                  value={ansVal}
+                  onChange={(e) => setAnsVal(e.target.value)}
+                  placeholder="Type the answer here..."
+                  rows={4}
+                  className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all resize-none"
+                />
               </div>
 
-              {/* Add Answer Side */}
-              <div className="border border-slate-200 rounded-xl p-6 bg-slate-50 relative">
-                  <h2 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-brand-600" />
-                    Add Answer
-                  </h2>
-                  
-                  <div className="space-y-4">
-                    <textarea
-                      value={ansVal}
-                      onChange={(e) => setAnsVal(e.target.value)}
-                      placeholder={selectedQ ? "Enter answer for selected question..." : "Select a question from the list below first to answer it..."}
-                      disabled={!selectedQ}
-                      rows={4}
-                      className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all disabled:bg-slate-100 disabled:cursor-not-allowed resize-none hover:bg-white"
-                    />
-                    <button 
-                      onClick={addAnswer}
-                      disabled={!ansVal.trim() || !selectedQ}
-                      className="w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors shadow-sm mt-3"
-                    >
-                      Publish Answer
-                    </button>
-                  </div>
-                  
-                  {selectedQ && (
-                    <div className="absolute top-6 right-6 text-xs text-brand-700 bg-brand-50 border border-brand-200 rounded-md p-2 flex items-center gap-2 shadow-sm font-medium">
-                      <span>Answering selected question</span>
-                      <button 
-                        onClick={() => setSelectedQ(null)}
-                        className="p-1 hover:bg-brand-100 rounded text-brand-500 hover:text-brand-800"
-                        title="Clear selection"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="px-6 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleAddFaq}
+                  disabled={!qVal.trim() || !ansVal.trim()}
+                  className="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all shadow-md shadow-brand-100"
+                >
+                  Publish FAQ
+                </button>
               </div>
             </div>
           </div>
@@ -186,201 +193,169 @@ export default function Faq() {
       )}
 
       {/* LIST VIEW SECTION */}
-      {!showForm && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in">
-          <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/30">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-brand-50 rounded-xl text-brand-600">
-                  <HelpCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-800">Available FAQs</h2>
-                  <p className="text-sm text-slate-500">Manage {questions.length} FAQ entries effectively</p>
-                </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in list-faq-container">
+        <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/30">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-brand-50 rounded-xl text-brand-600">
+                <HelpCircle className="w-6 h-6" />
               </div>
-              
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search questions or answers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50"
-                />
+              <div>
+                <h2 className="text-xl font-bold text-slate-800">FAQ Directory</h2>
+                <p className="text-sm text-slate-500">{questions.length} entries total</p>
               </div>
             </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest w-[45%]">Question</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Responses</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {questions
-                  .filter(q => 
-                    q.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    q.answers?.some(a => a.answer.toLowerCase().includes(searchTerm.toLowerCase()))
-                  )
-                  .map((q) => (
-                  <tr key={q.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4 relative">
-                      {editingQ === q.id ? (
-                        <div className="flex items-center gap-2 max-w-[400px]" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="text"
-                            value={editVal}
-                            onChange={(e) => setEditVal(e.target.value)}
-                            className="flex-1 rounded-md border-slate-300 border px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm"
-                            autoFocus
-                            onKeyDown={(e) => e.key === 'Enter' && saveQuestion(q.id)}
-                          />
-                          <button onClick={() => saveQuestion(q.id)} className="p-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-md shadow-sm transition-colors">
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button onClick={cancelEdit} className="p-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md shadow-sm transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800 break-words mb-1 flex items-start gap-2">
-                            {q.question}
-                          </p>
-                          {/* Expanded Answers View */}
-                          {expandedQ === q.id && (
-                            <div className="mt-4 space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Answers</p>
-                              {q.answers?.length === 0 ? (
-                                <p className="text-sm text-slate-400 italic">No answers provided yet.</p>
-                              ) : (
-                                q.answers?.map((a) => (
-                                  <div key={a.id} className="group/ans flex gap-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
-                                     {editingA === a.id ? (
-                                        <div className="flex items-start gap-2 w-full">
-                                          <textarea
-                                            value={editVal}
-                                            onChange={(e) => setEditVal(e.target.value)}
-                                            className="flex-1 rounded-md border-slate-300 border px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[60px]"
-                                            autoFocus
-                                          />
-                                          <div className="flex flex-col gap-1 shrink-0">
-                                            <button onClick={() => saveAnswer(a.id)} className="p-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded"><Check className="w-4 h-4" /></button>
-                                            <button onClick={cancelEdit} className="p-1 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded"><X className="w-4 h-4" /></button>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <>
-                                          <div className="flex-1 text-sm text-slate-600 whitespace-pre-wrap">{a.answer}</div>
-                                          <div className="flex flex-col gap-1 opacity-0 group-hover/ans:opacity-100 transition-opacity shrink-0">
-                                            <button onClick={() => startEditAnswer(a)} className="p-1 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded" title="Edit Answer"><Edit2 className="w-3.5 h-3.5" /></button>
-                                            <button onClick={() => removeAnswer(a.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Delete Answer"><Trash2 className="w-3.5 h-3.5" /></button>
-                                          </div>
-                                        </>
-                                      )}
-                                  </div>
-                                ))
-                              )}
-                              
-                              <div className="pt-2 flex">
-                                <button
-                                  onClick={() => {
-                                    setSelectedQ(q.id);
-                                    setShowForm(true);
-                                    window.scrollTo({ top: 0, behavior: "smooth" });
-                                  }}
-                                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors flex items-center gap-1.5 border border-brand-100"
-                                >
-                                  <MessageSquare size={14} /> Add Another Answer
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => toggleExpand(q.id)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
-                           q.answers?.length > 0 
-                            ? (expandedQ === q.id ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 hover:border-slate-300')
-                            : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                        }`}
-                      >
-                        {q.answers?.length || 0} Answers
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedQ === q.id ? 'rotate-180' : ''}`} />
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase tracking-wider border ${
-                        selectedQ === q.id
-                          ? 'bg-brand-50 text-brand-700 border-brand-200'
-                          : (q.answers?.length > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200')
-                      }`}>
-                        {selectedQ === q.id ? 'In Editor' : (q.answers?.length > 0 ? 'Answered' : 'Unanswered')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 outline-none">
-                        <button
-                          onClick={() => {
-                            setSelectedQ(selectedQ === q.id ? null : q.id);
-                            if (selectedQ !== q.id) {
-                              setShowForm(true);
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }
-                          }}
-                          className={`p-2 rounded-lg transition-colors border shadow-sm ${
-                            selectedQ === q.id 
-                               ? 'bg-brand-50 text-brand-600 border-brand-200 hover:bg-brand-100' 
-                               : 'bg-white text-slate-500 border-slate-200 hover:border-brand-300 hover:text-brand-600'
-                          }`}
-                          title="Select to add answer"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => startEditQuestion(q)}
-                          className="p-2 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 rounded-lg transition-colors border border-slate-200 shadow-sm"
-                          title="Edit Question"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => removeQuestion(q.id)}
-                          className="p-2 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 rounded-lg transition-colors border border-slate-200 shadow-sm"
-                          title="Delete Question"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                
-                {questions.length > 0 && questions.filter(q => 
-                  q.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  q.answers?.some(a => a.answer.toLowerCase().includes(searchTerm.toLowerCase()))
-                ).length === 0 && (
-                  <tr>
-                    <td colSpan="4" className="px-6 py-8 text-center text-slate-500">
-                      No FAQs found matching "{searchTerm}"
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search FAQs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50"
+              />
+            </div>
           </div>
         </div>
-      )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Question & Answer Content</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {questions
+                .filter(q => 
+                  (q.question?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
+                  (q.answer?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+                )
+                .map((q) => (
+                <tr key={q._id || q.id} className={`transition-colors ${editingQ === (q._id || q.id) ? 'bg-brand-50/30' : 'hover:bg-slate-50/50'}`}>
+                  <td className="px-6 py-5">
+                    {editingQ === (q._id || q.id) ? (
+                      <div className="space-y-4 max-w-3xl animate-slide-up">
+                        <div className="bg-white p-4 rounded-xl border border-brand-100 shadow-sm">
+                          <label className="block text-[10px] font-bold text-brand-600 uppercase mb-1">Question</label>
+                          <input
+                            type="text"
+                            value={editQVal}
+                            onChange={(e) => setEditQVal(e.target.value)}
+                            className="w-full rounded-lg border-slate-200 border px-4 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-brand-500 outline-none"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-brand-100 shadow-sm">
+                          <label className="block text-[10px] font-bold text-brand-600 uppercase mb-1">Answer</label>
+                          <textarea
+                            value={editAnsVal}
+                            onChange={(e) => setEditAnsVal(e.target.value)}
+                            rows={4}
+                            className="w-full rounded-lg border-slate-200 border px-4 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-brand-500 outline-none resize-none"
+                            placeholder="Add or update the answer..."
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-1">
+                          <button onClick={() => saveEdit(q._id || q.id)} className="inline-flex items-center gap-1.5 px-6 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100">
+                            <Check className="w-4 h-4" /> Save Changes
+                          </button>
+                          <button onClick={cancelEdit} className="inline-flex items-center gap-1.5 px-6 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300 transition-all">
+                            <X className="w-4 h-4" /> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="max-w-4xl">
+                        <p className="text-sm font-bold text-slate-900 mb-3 flex items-start gap-2">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-brand-100 text-brand-700 text-[10px] shrink-0 mt-0.5">Q</span>
+                          {q.question}
+                        </p>
+                        <div className="flex items-start gap-2 pl-1">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-slate-100 text-slate-500 text-[10px] shrink-0 mt-0.5">A</span>
+                          <div className="flex-1">
+                            {q.answer ? (
+                              <>
+                                <p className={`text-sm text-slate-600 leading-relaxed ${expandedQ === (q._id || q.id) ? '' : 'line-clamp-2'}`}>
+                                  {q.answer}
+                                </p>
+                                {q.answer.length > 150 && (
+                                  <button 
+                                    onClick={() => toggleExpand(q._id || q.id)}
+                                    className="mt-2 text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1"
+                                  >
+                                    {expandedQ === (q._id || q.id) ? "Show Less" : "Read Full Answer"}
+                                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedQ === (q._id || q.id) ? 'rotate-180' : ''}`} />
+                                  </button>
+                                )}
+                              </>
+                            ) : (
+                              <div className="flex flex-col items-start gap-2">
+                                <span className="text-slate-400 italic text-sm">No answer provided yet</span>
+                                <button 
+                                  onClick={() => startEdit(q)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-50 text-brand-600 rounded-lg text-xs font-bold hover:bg-brand-100 transition-colors"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5" />
+                                  Add Answer Now
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-5 text-right align-top">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => startEdit(q)}
+                        disabled={editingQ !== null}
+                        className="p-2.5 bg-white text-slate-400 hover:text-brand-600 hover:bg-brand-50 hover:border-brand-200 rounded-xl transition-all border border-slate-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Edit FAQ"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => removeFaq(q._id || q.id)}
+                        disabled={editingQ !== null}
+                        className="p-2.5 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 rounded-xl transition-all border border-slate-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete FAQ"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              
+              {questions.length === 0 && (
+                <tr>
+                  <td colSpan="2" className="px-6 py-20 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                        <HelpCircle size={40} />
+                      </div>
+                      <div>
+                        <p className="text-slate-900 font-bold">No FAQ entries found</p>
+                        <p className="text-slate-500 text-sm">Every great service starts with answering simple questions.</p>
+                      </div>
+                      <button 
+                        onClick={() => setShowForm(true)}
+                        className="px-6 py-2 bg-brand-600 text-white font-bold rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-brand-100"
+                      >
+                        Create Your First FAQ
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
