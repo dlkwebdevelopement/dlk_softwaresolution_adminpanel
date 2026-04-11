@@ -44,6 +44,7 @@ export default function GalleryEvents() {
   const [title, setTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
+  const [collegeName, setCollegeName] = useState("");
   const [mainImage, setMainImage] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
@@ -90,6 +91,7 @@ export default function GalleryEvents() {
     setTitle("");
     setEventDate("");
     setEventTime("");
+    setCollegeName("");
     setMainImage(null);
     setMainImagePreview(null);
     galleryImages.forEach(img => URL.revokeObjectURL(img.preview));
@@ -107,7 +109,8 @@ export default function GalleryEvents() {
     const d = new Date(event.eventDate);
     setEventDate(d.toISOString().split('T')[0]);
     
-    setEventTime(event.eventTime);
+    setEventTime(event.eventTime || "");
+    setCollegeName(event.collegeName || "");
     setMainImagePreview(event.mainImage);
     // Load existing gallery images as URL strings
     setExistingGalleryImages(event.galleryImages || []);
@@ -178,8 +181,8 @@ export default function GalleryEvents() {
   };
 
   const handleSubmit = async () => {
-    if (!categoryId || !title || !eventDate || !eventTime) {
-      return alert("Please fill all required fields");
+    if (!categoryId || !title || !eventDate) {
+      return alert("Please fill category, title, and date");
     }
     if (!editingEventId && !mainImage) {
       return alert("Main image is required for new events");
@@ -191,6 +194,7 @@ export default function GalleryEvents() {
     formData.append("title", title);
     formData.append("eventDate", eventDate);
     formData.append("eventTime", eventTime);
+    formData.append("collegeName", collegeName);
     
     if (mainImage) {
       formData.append("mainImage", mainImage);
@@ -301,11 +305,12 @@ export default function GalleryEvents() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Event Time</label>
+                <label className="text-sm font-medium text-slate-700">College Name</label>
                 <input
-                  type="time"
-                  value={eventTime}
-                  onChange={(e) => setEventTime(e.target.value)}
+                  type="text"
+                  value={collegeName}
+                  onChange={(e) => setCollegeName(e.target.value)}
+                  placeholder="e.g. ABC Engineering College"
                   className="w-full rounded-lg border-slate-200 border px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-brand-500 outline-none"
                 />
               </div>
@@ -429,7 +434,7 @@ export default function GalleryEvents() {
             <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
               <th className="px-6 py-4">Event Info</th>
               <th className="px-6 py-4">Category</th>
-              <th className="px-6 py-4">Date & Time</th>
+              <th className="px-6 py-4">Date & College</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -459,7 +464,7 @@ export default function GalleryEvents() {
                       <Calendar size={12} /> {new Date(event.eventDate).toLocaleDateString()}
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                      <Clock size={10} /> {event.eventTime}
+                      <Layers size={10} /> {event.collegeName || "N/A"}
                     </div>
                   </div>
                 </td>
