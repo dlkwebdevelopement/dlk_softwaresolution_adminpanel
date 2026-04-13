@@ -22,6 +22,10 @@ import {
   Tag,
   Award,
   Calendar,
+  GraduationCap,
+  Images,
+  Camera,
+  Building
 } from "lucide-react";
 
 const menuItems = [
@@ -37,10 +41,10 @@ const menuItems = [
   { text: "Banners", icon: <ImageIcon size={20} />, path: "/banners" },
   { text: "Offers", icon: <Tag size={20} />, path: "/offers" },
   { text: "Placements", icon: <Award size={20} />, path: "/placements" },
-  { text: "Gallery Management", icon: <ImageIcon size={20} />, path: "/gallery" },
-  { text: "Gallery Events", icon: <Calendar size={20} />, path: "/gallery-events" },
-  { text: "Office Gallery", icon: <ImageIcon size={20} />, path: "/office-gallery" },
-  { text: "Office Events", icon: <Calendar size={20} />, path: "/office-gallery-events" },
+  { text: "College Management", icon: <GraduationCap size={20} />, path: "/gallery" },
+  { text: "College Gallery", icon: <Images size={20} />, path: "/gallery-events" },
+  { text: "Office Management", icon: <Building size={20} />, path: "/office-gallery" },
+  { text: "Office Gallery", icon: <Camera size={20} />, path: "/office-gallery-events" },
   { text: "Skills", icon: <Briefcase size={20} />, path: "/skills" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
   { text: "Student Projects", icon: <FileText size={20} />, path: "/student-projects" },
@@ -61,8 +65,8 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors duration-200 group ${isActive || isOpen
-              ? "bg-slate-800 text-white"
-              : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            ? "bg-slate-800 text-white"
+            : "text-slate-400 hover:bg-slate-800 hover:text-white"
             }`}
         >
           <div className="flex items-center gap-3">
@@ -82,8 +86,8 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
                 key={index}
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm ${location.pathname === item.path || (item.path !== '/' && location.pathname.includes(item.path))
-                    ? "bg-brand-500/10 text-brand-400 font-medium"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-brand-500/10 text-brand-400 font-medium"
+                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
                   }`}
               >
                 {item.icon && <span className="text-slate-500">{item.icon}</span>}
@@ -100,8 +104,8 @@ const SidebarItem = ({ icon, text, path, subItems }) => {
     <Link
       to={path}
       className={`flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg transition-colors duration-200 group ${isActive
-          ? "bg-brand-500/10 text-brand-400 font-medium"
-          : "text-slate-400 hover:bg-slate-800 hover:text-white"
+        ? "bg-brand-500/10 text-brand-400 font-medium"
+        : "text-slate-400 hover:bg-slate-800 hover:text-white"
         }`}
     >
       <span className={`${isActive ? "text-brand-500" : "text-slate-500 group-hover:text-brand-400"}`}>

@@ -240,7 +240,7 @@ export default function OfficeGalleryEvents() {
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Office Gallery Events</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Office Gallery </h1>
           <p className="text-slate-500">Create and manage office-specific event galleries</p>
         </div>
         {!isFormVisible && (
@@ -304,7 +304,7 @@ export default function OfficeGalleryEvents() {
 
             {/* Featured Image */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-slate-700 block">Featured Main Image</label>
+              <label className="text-sm font-medium text-slate-700 block">Main Image</label>
               <div className={`p-5 rounded-xl border-2 border-dashed ${mainImage ? 'border-brand-300 bg-brand-50/30' : 'border-slate-300 bg-slate-50'}`}>
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
                   <div className="w-48 h-32 rounded-lg border border-slate-200 bg-white overflow-hidden flex items-center justify-center shrink-0">
@@ -399,13 +399,20 @@ export default function OfficeGalleryEvents() {
               </div>
             </div>
 
+            <div className="bg-amber-50 border border-amber-200/50 rounded-xl p-4 flex gap-3 items-start mt-2">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-sm text-slate-600">
+                <span className="font-bold text-amber-700">Disclaimer:</span> Please ensure you have the necessary rights to use and publish these images. For optimal performance, use high-quality JPG or PNG images under 2MB. Uploads are processed immediately.
+              </div>
+            </div>
+
             <div className="flex gap-4 pt-4">
               <button
                 onClick={handleSubmit}
                 disabled={isUploading}
                 className="flex-1 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : editingEventId ? "Update Event Gallery" : "Save Event Gallery"}
+                {isUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : editingEventId ? "Update Gallery" : "Save Gallery"}
               </button>
               <button onClick={resetForm} className="px-8 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
             </div>

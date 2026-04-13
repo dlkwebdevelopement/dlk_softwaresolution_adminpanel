@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
-import { 
-  Edit2, 
-  Trash2, 
-  Loader2, 
+import {
+  Edit2,
+  Trash2,
+  Loader2,
   Image as ImageIcon,
   CheckCircle2,
   AlertCircle,
@@ -105,17 +105,17 @@ export default function GalleryEvents() {
     setEditingEventId(event.id);
     setCategoryId(event.categoryId?._id || event.categoryId || "");
     setTitle(event.title);
-    
+
     const d = new Date(event.eventDate);
     setEventDate(d.toISOString().split('T')[0]);
-    
+
     setEventTime(event.eventTime || "");
     setCollegeName(event.collegeName || "");
     setMainImagePreview(event.mainImage);
     // Load existing gallery images as URL strings
     setExistingGalleryImages(event.galleryImages || []);
     setGalleryImages([]); // new uploads start empty
-    
+
     setIsFormVisible(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -162,13 +162,13 @@ export default function GalleryEvents() {
     try {
       if (croppedAreaPixels) {
         const croppedFile = await getCroppedImg(cropImage, croppedAreaPixels);
-        
+
         // Revoke old preview if exists
         if (mainImagePreview) URL.revokeObjectURL(mainImagePreview);
-        
+
         const previewUrl = URL.createObjectURL(croppedFile);
         console.log("Setting main image preview:", previewUrl);
-        
+
         setMainImage(croppedFile);
         setMainImagePreview(previewUrl);
         setCropModalVisible(false);
@@ -195,7 +195,7 @@ export default function GalleryEvents() {
     formData.append("eventDate", eventDate);
     formData.append("eventTime", eventTime);
     formData.append("collegeName", collegeName);
-    
+
     if (mainImage) {
       formData.append("mainImage", mainImage);
     }
@@ -244,7 +244,7 @@ export default function GalleryEvents() {
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Gallery Events Management</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">College Gallery</h1>
           <p className="text-slate-500">Create and manage event-based gallery posts</p>
         </div>
         {!isFormVisible && (
@@ -266,7 +266,7 @@ export default function GalleryEvents() {
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="p-6 md:p-8 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
@@ -318,7 +318,7 @@ export default function GalleryEvents() {
 
             {/* Featured Image */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-slate-700 block">Featured Main Image</label>
+              <label className="text-sm font-medium text-slate-700 block">Logo image</label>
               <div className={`p-5 rounded-xl border-2 border-dashed ${mainImage ? 'border-brand-300 bg-brand-50/30' : 'border-slate-300 bg-slate-50'}`}>
                 <div className="flex flex-col sm:flex-row gap-6 items-center">
                   <div className="w-48 h-32 rounded-lg border border-slate-200 bg-white overflow-hidden flex items-center justify-center shrink-0">
@@ -359,8 +359,8 @@ export default function GalleryEvents() {
                     <div key={`existing-${idx}`} className="aspect-square relative rounded-lg overflow-hidden group border-2 border-brand-200">
                       <img src={url} className="w-full h-full object-cover" alt="" />
                       <div className="absolute top-1 left-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Saved</div>
-                      <button 
-                        onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))} 
+                      <button
+                        onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))}
                         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={12} />
@@ -373,11 +373,11 @@ export default function GalleryEvents() {
                     <div key={`new-${idx}`} className="aspect-square relative rounded-lg overflow-hidden group border-2 border-dashed border-slate-300">
                       <img src={imgObj.preview} className="w-full h-full object-cover" alt="" />
                       <div className="absolute top-1 left-1 bg-slate-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">New</div>
-                      <button 
+                      <button
                         onClick={() => {
                           URL.revokeObjectURL(imgObj.preview);
                           setGalleryImages(prev => prev.filter((_, i) => i !== idx));
-                        }} 
+                        }}
                         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <X size={12} />
@@ -387,11 +387,11 @@ export default function GalleryEvents() {
 
                   {/* Add more button */}
                   <label className="aspect-square border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white transition-all text-slate-400 hover:text-brand-500">
-                    <input 
-                      type="file" 
-                      multiple 
-                      accept="image/*" 
-                      className="hidden" 
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
                       onChange={(e) => {
                         const files = Array.from(e.target.files);
                         const newImages = files.map(file => ({
@@ -413,14 +413,21 @@ export default function GalleryEvents() {
               </div>
             </div>
 
+            <div className="bg-amber-50 border border-amber-200/50 rounded-xl p-4 flex gap-3 items-start mt-2">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-sm text-slate-600">
+                <span className="font-bold text-amber-700">Disclaimer:</span> Please ensure you have the necessary rights to use and publish these images. For optimal performance, use high-quality JPG or PNG images under 2MB. Uploads are processed immediately.
+              </div>
+            </div>
+
             <div className="flex gap-4 pt-4">
-                <button 
-                  onClick={handleSubmit} 
-                  disabled={isUploading}
-                  className="flex-1 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : editingEventId ? "Update Event Gallery" : "Save Event Gallery"}
-                </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isUploading}
+                className="flex-1 py-3 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isUploading ? <><Loader2 className="w-5 h-5 animate-spin" /> Uploading...</> : editingEventId ? "Update Gallery" : "Save Gallery"}
+              </button>
               <button onClick={resetForm} className="px-8 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
             </div>
           </div>
