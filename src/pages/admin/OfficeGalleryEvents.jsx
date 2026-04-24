@@ -399,12 +399,7 @@ export default function OfficeGalleryEvents() {
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200/50 rounded-xl p-4 flex gap-3 items-start mt-2">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div className="text-sm text-slate-600">
-                <span className="font-bold text-amber-700">Disclaimer:</span> Please ensure you have the necessary rights to use and publish these images. For optimal performance, use high-quality JPG or PNG images under 2MB. Uploads are processed immediately.
-              </div>
-            </div>
+
 
             <div className="flex gap-4 pt-4">
               <button
@@ -420,57 +415,77 @@ export default function OfficeGalleryEvents() {
         </div>
       )}
 
-      {/* Events Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
-              <th className="px-6 py-4">Event Info</th>
-              <th className="px-6 py-4">Category</th>
-              <th className="px-6 py-4">Event Date</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {events.map((event) => (
-              <tr key={event.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-10 rounded overflow-hidden bg-slate-100 border border-slate-200">
-                      <img src={event.mainImage} alt="" className="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900">{event.title}</h4>
-                      <p className="text-[10px] text-slate-400 font-mono">ID: {event.id.substring(0, 8)}...</p>
-                    </div>
+      {/* Events Grid (Modern Small Size Cards) */}
+      {!loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {events.map((event) => {
+            const categoryName = event.categoryId?.albumName || 
+                               categories.find(c => (c.id === event.categoryId || c._id === event.categoryId))?.albumName || 
+                               "Unknown Album";
+            
+            return (
+              <div 
+                key={event.id} 
+                className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              >
+                {/* Card Thumbnail */}
+                <div className="aspect-[16/9] relative bg-slate-100 overflow-hidden">
+                  <img 
+                    src={event.mainImage} 
+                    alt={event.title} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/90 backdrop-blur-sm text-brand-600 rounded-lg text-xs font-bold shadow-sm">
+                      <Layers size={10} />
+                      {categoryName}
+                    </span>
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-50 text-brand-600 rounded-lg text-xs font-bold ring-1 ring-brand-100">
-                    <Layers size={12} />
-                    {event.categoryId?.albumName || categories.find(c => (c.id === event.categoryId || c._id === event.categoryId))?.albumName || "Unknown"}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
-                      <Calendar size={12} /> {new Date(event.eventDate).toLocaleDateString()}
-                    </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 line-clamp-1 group-hover:text-brand-600 transition-colors">
+                      {event.title}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-mono mt-0.5 uppercase tracking-wider">ID: {event.id.substring(0, 8)}</p>
                   </div>
-                </td>
-                <td className="px-6 py-4 text-right space-x-2">
-                  <button onClick={() => handleEdit(event)} className="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
-                    <Edit2 size={18} />
-                  </button>
-                  <button onClick={() => handleDelete(event.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+
+                  <div className="flex flex-col gap-1.5 pt-1 border-t border-slate-50">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                      <Calendar size={14} className="text-slate-400" />
+                      {new Date(event.eventDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                    {event.eventTime && (
+                      <div className="flex items-center gap-2 text-xs text-slate-400 font-medium italic">
+                        <Clock size={14} className="text-slate-300" />
+                        {event.eventTime}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="flex items-center justify-end gap-2 pt-3">
+                    <button 
+                      onClick={() => handleEdit(event)}
+                      className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all border border-slate-100"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(event.id)}
+                      className="inline-flex items-center justify-center p-2 rounded-lg bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all border border-slate-100"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {loading && (
         <div className="flex justify-center p-20">

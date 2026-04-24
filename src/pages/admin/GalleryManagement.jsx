@@ -418,12 +418,7 @@ export default function GalleryManagement() {
               )}
             </div>
             
-            <div className="bg-amber-50 border border-amber-200/50 rounded-xl p-4 flex gap-3 items-start mx-6 mb-2">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div className="text-sm text-slate-600">
-                <span className="font-bold text-amber-700">Disclaimer:</span> Please ensure you have the necessary rights to use and publish these images. For optimal performance, use high-quality JPG or PNG images under 2MB. Uploads are processed immediately.
-              </div>
-            </div>
+
 
             <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={() => setIsAddAlbumModalOpen(false)} className="px-4 py-2 text-slate-600 font-medium">Cancel</button>
@@ -781,12 +776,7 @@ export default function GalleryManagement() {
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200/50 rounded-xl p-4 flex gap-3 items-start mx-6 mb-2">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div className="text-sm text-slate-600">
-                <span className="font-bold text-amber-700">Disclaimer:</span> Please ensure you have the necessary rights to use and publish these images. For optimal performance, use high-quality JPG or PNG images under 2MB. Uploads are processed immediately.
-              </div>
-            </div>
+
 
             <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
               <button
