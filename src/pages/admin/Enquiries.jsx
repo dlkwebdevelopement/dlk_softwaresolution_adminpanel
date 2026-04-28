@@ -19,7 +19,9 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  Video as VideoCallIcon,
+  Star as StarIcon
 } from "lucide-react";
 import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/api";
 import {
@@ -63,6 +65,7 @@ const Enquiries = () => {
   
   // ✅ Filter & Pagination State
   const [filter, setFilter] = useState("all"); 
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -159,12 +162,16 @@ const Enquiries = () => {
 
   const filteredList = useMemo(() => {
     return list.filter(e => {
-      if (filter === "new") return !e.isRead;
-      if (filter === "viewed") return e.isRead && !e.isReply;
-      if (filter === "replied") return e.isReply;
-      return true;
+      const statusMatch = filter === "all" || 
+        (filter === "new" && !e.isRead) ||
+        (filter === "viewed" && e.isRead && !e.isReply) ||
+        (filter === "replied" && e.isReply);
+      
+      const typeMatch = typeFilter === "all" || e.inquiryType === typeFilter;
+      
+      return statusMatch && typeMatch;
     });
-  }, [list, filter]);
+  }, [list, filter, typeFilter]);
 
   // ✅ Pagination Logic
   const totalPages = Math.ceil(filteredList.length / itemsPerPage);
@@ -175,7 +182,7 @@ const Enquiries = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
+  }, [filter, typeFilter]);
 
   // ✅ Highlight-Aware Pagination
   useEffect(() => {
@@ -200,16 +207,38 @@ const Enquiries = () => {
               <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-none">Management Terminal</p>
             </div>
             
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
-               {["all", "new", "viewed", "replied"].map((f) => (
-                 <button
-                   key={f}
-                   onClick={() => setFilter(f)}
-                   className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                 >
-                   {f}
-                 </button>
-               ))}
+            <div className="flex flex-wrap items-center gap-2">
+               {/* Type Filter */}
+               <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setTypeFilter("all")}
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${typeFilter === "all" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  All
+                </button>
+                {["Online Courses", "Corporate Training", "Career Services", "Quick Enquiry", "Live Classes", "Offer", "Blog"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setTypeFilter(type)}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${typeFilter === type ? (type === 'Live Classes' ? 'bg-emerald-600 text-white shadow-sm' : type === 'Offer' ? 'bg-amber-600 text-white shadow-sm' : type === 'Blog' ? 'bg-blue-600 text-white shadow-sm' : 'bg-indigo-600 text-white shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    {type === 'Live Classes' ? 'Live' : type === 'Offer' ? 'Offers' : type === 'Quick Enquiry' ? 'Quick' : type === 'Blog' ? 'Blog' : type.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-1.5 bg-slate-800 p-1 rounded-xl border border-slate-700 shadow-lg">
+                {["all", "new", "viewed", "replied"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -295,10 +324,17 @@ const Enquiries = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">
-                             <div className="flex items-center gap-2">
-                                <GraduationCap size={14} className="text-indigo-500"/>
-                                <span className="text-[13px] font-bold text-slate-700 truncate max-w-[180px]">{enquiry.course}</span>
+                            <td className="px-6 py-3">
+                             <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                   {enquiry.inquiryType === "Live Classes" ? <VideoCallIcon size={14} className="text-emerald-500"/> : enquiry.inquiryType === "Offer" ? <StarIcon size={14} className="text-amber-500"/> : <GraduationCap size={14} className="text-indigo-500"/>}
+                                   <span className="text-[13px] font-bold text-slate-700 truncate max-w-[200px]">{enquiry.course}</span>
+                                </div>
+                                {enquiry.inquiryType && enquiry.inquiryType !== "General" && (
+                                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md w-fit ${enquiry.inquiryType === 'Live Classes' ? 'text-emerald-500 bg-emerald-50' : enquiry.inquiryType === 'Offer' ? 'text-amber-500 bg-amber-50' : enquiry.inquiryType === 'Blog' ? 'text-blue-500 bg-blue-50' : 'text-indigo-500 bg-indigo-50'}`}>
+                                    {enquiry.inquiryType}
+                                  </span>
+                                )}
                              </div>
                           </td>
                           <td className="px-6 py-3">
@@ -383,20 +419,26 @@ const Enquiries = () => {
                    <h2 className="text-xl font-black text-slate-900 mb-1 leading-tight">{selectedEnquiry.name}</h2>
                    <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mb-6">Inquiry Candidate</p>
                    
-                   <div className="space-y-3 text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-                         <Mail size={14} className="text-brand-500 shrink-0" />
-                         <span className="truncate">{selectedEnquiry.email}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-                         <Phone size={14} className="text-brand-500 shrink-0" />
-                         <span>{selectedEnquiry.mobile}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-                         <MapPin size={14} className="text-brand-500 shrink-0" />
-                         <span>{selectedEnquiry.location}</span>
-                      </div>
-                   </div>
+                    <div className="space-y-3 text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                       <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                          <Mail size={14} className="text-brand-500 shrink-0" />
+                          <span className="truncate">{selectedEnquiry.email}</span>
+                       </div>
+                       <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                          <Phone size={14} className="text-brand-500 shrink-0" />
+                          <span>{selectedEnquiry.mobile}</span>
+                       </div>
+                       <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                          <MapPin size={14} className="text-brand-500 shrink-0" />
+                          <span>{selectedEnquiry.location}</span>
+                       </div>
+                       {selectedEnquiry.message && (
+                        <div className="flex flex-col gap-1 mt-2 pt-2 border-t border-slate-200">
+                          <span className="text-[10px] uppercase font-black text-slate-400">Message</span>
+                          <span className="text-xs text-slate-700 italic">"{selectedEnquiry.message}"</span>
+                        </div>
+                       )}
+                    </div>
                    
                    <button 
                      onClick={() => setDeleteId(selectedEnquiry.id)}
@@ -409,13 +451,18 @@ const Enquiries = () => {
                 <div className="bg-slate-900 rounded-[24px] p-6 text-white shadow-xl shadow-slate-100">
                    <h3 className="text-[9px] font-black uppercase tracking-widest text-brand-400 mb-4 leading-none font-sans">Enquired Course</h3>
                    <div className="space-y-4">
-                      <div className="flex items-start gap-4">
-                         <GraduationCap size={22} className="text-brand-500 shrink-0"/>
-                         <div>
-                            <div className="font-black text-lg leading-tight mb-1">{selectedEnquiry.course}</div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Preferred: {selectedEnquiry.timeslot}</div>
-                         </div>
-                      </div>
+                       <div className="flex items-start gap-4">
+                          <GraduationCap size={22} className="text-brand-500 shrink-0"/>
+                          <div>
+                             <div className="font-black text-lg leading-tight mb-1">{selectedEnquiry.course}</div>
+                             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mb-2">Preferred: {selectedEnquiry.timeslot}</div>
+                             {selectedEnquiry.inquiryType && (
+                               <span className="inline-block px-3 py-1 rounded-lg bg-brand-500 text-white text-[10px] font-black uppercase tracking-widest">
+                                 {selectedEnquiry.inquiryType}
+                               </span>
+                             )}
+                          </div>
+                       </div>
                    </div>
                 </div>
              </div>

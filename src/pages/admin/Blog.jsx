@@ -344,12 +344,12 @@ export default function Blog() {
 
   return (
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col items-center text-center gap-6 mb-12">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">
             Blog Management
           </h1>
-          <p className="text-slate-500">Manage your insightful articles and news</p>
+          <p className="text-slate-500 font-medium max-w-lg mx-auto">Manage your insightful articles and news from one centralized editor.</p>
         </div>
         
         {!isFormVisible && (
@@ -358,10 +358,10 @@ export default function Blog() {
               resetForm();
               setIsFormVisible(true);
             }}
-            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-brand-200 active:scale-95"
+            className="flex items-center gap-3 bg-brand-600 hover:bg-brand-700 text-white font-black py-4 px-10 rounded-[20px] transition-all shadow-xl shadow-brand-100 hover:-translate-y-1 active:scale-95"
           >
-            <Plus className="w-5 h-5" />
-            Add New Blog
+            <Plus className="w-6 h-6" />
+            Add New Blog Post
           </button>
         )}
       </div>
@@ -581,13 +581,14 @@ export default function Blog() {
           <div className="p-4 bg-white rounded-full shadow-sm mb-4">
             <FileText className="w-12 h-12 text-slate-300" />
           </div>
-          <h3 className="text-slate-700 font-bold text-xl mb-1">No blogs found</h3>
-          <p className="text-slate-500 max-w-xs mx-auto mb-6">Start by creating your first insights-filled blog post.</p>
+          <h3 className="text-slate-900 font-black text-2xl mb-2">No blogs found</h3>
+          <p className="text-slate-500 max-w-xs mx-auto mb-8 font-medium">Start by creating your first insights-filled blog post to engage your audience.</p>
           <button
             onClick={() => setIsFormVisible(true)}
-            className="text-brand-600 font-bold hover:underline"
+            className="flex items-center gap-3 bg-brand-600 hover:bg-brand-700 text-white font-black py-4 px-10 rounded-[20px] transition-all shadow-xl shadow-brand-100 hover:-translate-y-1 active:scale-95"
           >
-            + Create your first blog
+            <Plus className="w-6 h-6" />
+            Create Your First Blog
           </button>
         </div>
       ) : (

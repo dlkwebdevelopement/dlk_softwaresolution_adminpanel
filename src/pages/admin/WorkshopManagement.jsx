@@ -227,26 +227,26 @@ export default function WorkshopManagement() {
   return (
     <div className="max-w-[1400px] mx-auto p-4 md:p-8 animate-fade-in text-slate-900">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col items-center text-center gap-6 mb-12">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">Workshop Management</h1>
-          <p className="text-slate-500 font-medium">Create and manage upcoming workshops and expert sessions.</p>
+          <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Workshop Management</h1>
+          <p className="text-slate-500 font-medium max-w-lg mx-auto">Create and manage upcoming workshops and expert sessions effortlessly from one central dashboard.</p>
         </div>
         {!isFormVisible ? (
           <button 
             onClick={() => setIsFormVisible(true)}
-            className="flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg hover:shadow-brand-100 active:scale-95"
+            className="flex items-center justify-center gap-3 bg-brand-600 hover:bg-brand-700 text-white px-10 py-4 rounded-[20px] font-black transition-all shadow-xl shadow-brand-100 hover:-translate-y-1 active:scale-95"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-6 h-6" />
             Add New Workshop
           </button>
         ) : (
           <button 
             onClick={resetForm}
-            className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-2xl font-bold transition-all shadow-sm active:scale-95"
+            className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-3 rounded-2xl font-bold transition-all shadow-sm active:scale-95"
           >
             <ArrowLeft className="w-5 h-5" />
-            Back to List
+            Back to Workshop List
           </button>
         )}
       </div>
@@ -479,7 +479,14 @@ export default function WorkshopManagement() {
                           <ImageIcon className="w-8 h-8 text-slate-200" />
                         </div>
                         <p className="text-slate-500 font-bold text-lg">No workshops found</p>
-                        <p className="text-slate-400 text-sm mt-1">Add your first workshop to get started.</p>
+                        <p className="text-slate-400 text-sm mt-1 mb-6">Add your first workshop to get started.</p>
+                        <button 
+                          onClick={() => setIsFormVisible(true)}
+                          className="flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg hover:shadow-brand-100 mx-auto"
+                        >
+                          <Plus className="w-5 h-5" />
+                          Add New Workshop
+                        </button>
                       </td>
                     </tr>
                   ) : (
