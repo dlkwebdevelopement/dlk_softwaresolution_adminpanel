@@ -67,6 +67,9 @@ export const ADMIN_POST_BLOGS = "/admin/blogs";
 export const ADMIN_GET_BLOGS_SLUG = (slug) => `/admin/blogs/${slug}`;
 export const ADMIN_UPDATE_BLOGS = (id) => `/admin/blogs/${id}`;
 export const ADMIN_DELETE_BLOGS = (id) => `/admin/blogs/${id}`;
+export const ADMIN_GENERATE_BLOG_CODE = "/admin/blog-codes/generate";
+export const ADMIN_GET_BLOG_CODES = "/admin/blog-codes";
+export const ADMIN_DELETE_BLOG_CODE = (id) => `/admin/blog-codes/${id}`;
 
 // 🎒 Student Projects
 export const ADMIN_GET_ALL_STUDENT_PROJECTS = "/admin/student-projects";

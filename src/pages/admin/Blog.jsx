@@ -15,7 +15,11 @@ import {
   Plus,
   ChevronDown,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RefreshCw,
+  Hash,
+  Copy,
+  Calendar,
 } from "lucide-react";
 
 import {
@@ -24,6 +28,9 @@ import {
   ADMIN_UPDATE_BLOGS,
   ADMIN_DELETE_BLOGS,
   ADMIN_GET_BLOGS_SLUG,
+  ADMIN_GENERATE_BLOG_CODE,
+  ADMIN_GET_BLOG_CODES,
+  ADMIN_DELETE_BLOG_CODE,
 } from "../../apis/endpoints";
 
 import {
@@ -53,6 +60,44 @@ export default function Blog() {
   const [editorInstance, setEditorInstance] = useState(null);
   const [previewBlog, setPreviewBlog] = useState(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("blogs"); // "blogs" or "codes"
+  const [blogCodes, setBlogCodes] = useState([]);
+  const [generatingCode, setGeneratingCode] = useState(false);
+
+  // Blog Codes logic
+  const fetchBlogCodes = async () => {
+    try {
+      const res = await GetRequest(ADMIN_GET_BLOG_CODES);
+      if (res.success) setBlogCodes(res.data);
+    } catch (err) {
+      console.error("Fetch Codes Error:", err);
+    }
+  };
+
+  const generateCode = async () => {
+    setGeneratingCode(true);
+    try {
+      const res = await PostRequest(ADMIN_GENERATE_BLOG_CODE, {});
+      if (res.success) {
+        fetchBlogCodes();
+        alert("New 4-digit code generated: " + res.data.code);
+      }
+    } catch (err) {
+      console.error("Generate Code Error:", err);
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const deleteCode = async (id) => {
+    if (!window.confirm("Delete this code?")) return;
+    try {
+      const res = await DeleteRequest(ADMIN_DELETE_BLOG_CODE(id));
+      if (res.success) fetchBlogCodes();
+    } catch (err) {
+      console.error("Delete Code Error:", err);
+    }
+  };
 
   // 🔹 Cropping States
   const [cropImage, setCropImage] = useState(null);
@@ -61,10 +106,14 @@ export default function Blog() {
   // Helper to format date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
+    }) + ' ' + date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -217,6 +266,7 @@ export default function Blog() {
 
   useEffect(() => {
     fetchBlogs();
+    fetchBlogCodes();
   }, []);
 
   // Reset form
@@ -337,10 +387,27 @@ export default function Blog() {
   };
 
   // Pagination logic
+  const filteredBlogs = blogs.filter(b => {
+    if (activeTab === "blogs") return b.authorType === "Admin" || !b.authorType;
+    if (activeTab === "studentBlogs") return b.authorType === "Student";
+    return true;
+  });
+
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
-  const totalPages = Math.ceil(blogs.length / blogsPerPage);
+  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
+
+  const toggleApproval = async (blog) => {
+    try {
+      const res = await PutRequest(ADMIN_UPDATE_BLOGS(blog.id), { isApproved: !blog.isApproved });
+      if (res.success) {
+        fetchBlogs();
+      }
+    } catch (err) {
+      console.error("Toggle Approval Error:", err);
+    }
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
@@ -351,8 +418,29 @@ export default function Blog() {
           </h1>
           <p className="text-slate-500 font-medium max-w-lg mx-auto">Manage your insightful articles and news from one centralized editor.</p>
         </div>
+
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl w-fit">
+          <button
+            onClick={() => setActiveTab("blogs")}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === "blogs" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Admin Blogs
+          </button>
+          <button
+            onClick={() => setActiveTab("studentBlogs")}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === "studentBlogs" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Student Blogs
+          </button>
+          <button
+            onClick={() => setActiveTab("codes")}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === "codes" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Access Codes
+          </button>
+        </div>
         
-        {!isFormVisible && (
+        {activeTab === "blogs" && !isFormVisible && (
           <button
             onClick={() => {
               resetForm();
@@ -364,8 +452,21 @@ export default function Blog() {
             Add New Blog Post
           </button>
         )}
+
+        {activeTab === "codes" && (
+          <button
+            onClick={generateCode}
+            disabled={generatingCode}
+            className="flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-10 rounded-[20px] transition-all shadow-xl shadow-emerald-100 hover:-translate-y-1 active:scale-95 disabled:opacity-50"
+          >
+            {generatingCode ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
+            Generate New Access Code
+          </button>
+        )}
       </div>
 
+      {activeTab === "blogs" || activeTab === "studentBlogs" ? (
+        <>
       {/* 🔹 Blog Form */}
       {isFormVisible && (
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden mb-12 animate-in slide-in-from-top-4 duration-300">
@@ -567,7 +668,7 @@ export default function Blog() {
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-slate-900">Published Articles</h2>
           <span className="bg-brand-100 text-brand-700 px-3 py-1 rounded-full text-xs font-bold ring-1 ring-brand-200">
-            {blogs.length} Total
+            {filteredBlogs.length} {activeTab === "studentBlogs" ? "Student" : "Admin"} Articles
           </span>
         </div>
       </div>
@@ -598,6 +699,7 @@ export default function Blog() {
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Blog Info</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Author</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Summary</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
@@ -626,6 +728,14 @@ export default function Blog() {
                         </div>
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {blog.authorType === "Student" && (
+                        <div className="flex flex-col">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 w-fit">STUDENT</span>
+                          <span className="text-xs text-slate-500 mt-1">{blog.studentName}</span>
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 hidden lg:table-cell max-w-xs">
                       <p className="text-sm text-slate-500 line-clamp-1">{blog.short_description}</p>
                     </td>
@@ -634,6 +744,15 @@ export default function Blog() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {blog.authorType === "Student" && (
+                          <button
+                            onClick={() => toggleApproval(blog)}
+                            className={`p-2 rounded-lg transition-colors ${blog.isApproved ? 'text-emerald-600 hover:bg-emerald-50' : 'text-amber-600 hover:bg-amber-50'}`}
+                            title={blog.isApproved ? "Unapprove" : "Approve"}
+                          >
+                            <CheckCircle2 className={`w-4 h-4 ${!blog.isApproved && 'opacity-40'}`} />
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             fetchBlogBySlug(blog.slug).then(fullBlog => {
@@ -703,6 +822,92 @@ export default function Blog() {
               </button>
             </div>
           )}
+        </div>
+      )}
+      </>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in duration-500">
+          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Hash className="w-5 h-5 text-emerald-600" />
+              Available Access Codes
+            </h2>
+            <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded-md">
+              {blogCodes.length} Codes Total
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Access Code</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Created Date</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {blogCodes.map((item) => (
+                  <tr key={item._id} className="hover:bg-slate-50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-emerald-50 text-emerald-700 font-mono font-bold px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center gap-2">
+                          {item.code}
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.code);
+                              alert("Code copied!");
+                            }}
+                            className="p-1 hover:bg-emerald-100 rounded transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {item.isUsed ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                          <CheckCircle2 className="w-3 h-3" /> Used
+                        </span>
+                      ) : (new Date() - new Date(item.createdAt)) / (1000 * 60 * 60) > 24 ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                          <X className="w-3 h-3" /> Expired
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          <AlertCircle className="w-3 h-3" /> Available
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Calendar className="w-4 h-4 opacity-40" />
+                        {formatDate(item.createdAt)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => deleteCode(item._id)}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        title="Delete Code"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {blogCodes.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-20 text-center text-slate-400 font-medium italic">
+                      No access codes generated yet. Generate one to allow students to post blogs.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
