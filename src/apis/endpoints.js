@@ -77,6 +77,9 @@ export const ADMIN_POST_STUDENT_PROJECTS = "/admin/student-projects";
 export const ADMIN_GET_STUDENT_PROJECTS_SLUG = (slug) => `/admin/student-projects/${slug}`;
 export const ADMIN_UPDATE_STUDENT_PROJECTS = (id) => `/admin/student-projects/${id}`;
 export const ADMIN_DELETE_STUDENT_PROJECTS = (id) => `/admin/student-projects/${id}`;
+export const ADMIN_GENERATE_PROJECT_CODE = "/admin/project-codes/generate";
+export const ADMIN_GET_PROJECT_CODES = "/admin/project-codes";
+export const ADMIN_DELETE_PROJECT_CODE = (id) => `/admin/project-codes/${id}`;
 
 // 📚 Courses
 export const ADMIN_POST_COURSES = "/admin/course";
