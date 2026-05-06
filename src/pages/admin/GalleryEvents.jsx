@@ -18,19 +18,20 @@ import {
 } from "lucide-react";
 
 import {
-  ADMIN_GET_GALLERY,
-  ADMIN_GET_ALL_GALLERY_EVENTS,
-  ADMIN_POST_GALLERY_EVENT,
-  ADMIN_PUT_GALLERY_EVENT,
-  ADMIN_DELETE_GALLERY_EVENT
-} from "../../apis/endpoints";
-
-import {
   GetRequest,
   PostRequest,
   PutRequest,
   DeleteRequest,
+  PatchRequest,
 } from "../../apis/api";
+import {
+  ADMIN_GET_GALLERY,
+  ADMIN_GET_ALL_GALLERY_EVENTS,
+  ADMIN_POST_GALLERY_EVENT,
+  ADMIN_PUT_GALLERY_EVENT,
+  ADMIN_DELETE_GALLERY_EVENT,
+  ADMIN_UPDATE_GALLERY_EVENT_IMAGE_HIGHLIGHTS
+} from "../../apis/endpoints";
 
 export default function GalleryEvents() {
   const [events, setEvents] = useState([]);
@@ -57,6 +58,11 @@ export default function GalleryEvents() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+  // Per-image highlights state
+  const [editingImageIdx, setEditingImageIdx] = useState(-1);
+  const [isEditingExisting, setIsEditingExisting] = useState(false);
+  const [highlightInput, setHighlightInput] = useState("");
 
   useEffect(() => {
     fetchEvents();
@@ -112,7 +118,7 @@ export default function GalleryEvents() {
     setEventTime(event.eventTime || "");
     setCollegeName(event.collegeName || "");
     setMainImagePreview(event.mainImage);
-    // Load existing gallery images as URL strings
+    // Load existing gallery images as objects
     setExistingGalleryImages(event.galleryImages || []);
     setGalleryImages([]); // new uploads start empty
 
@@ -200,12 +206,16 @@ export default function GalleryEvents() {
       formData.append("mainImage", mainImage);
     }
 
-    // Send which existing images to keep (so backend can delete removed ones)
-    formData.append("keepImages", JSON.stringify(existingGalleryImages));
+    // Send which existing images to keep
+    const keep = existingGalleryImages.map(img => typeof img === 'string' ? img : img.url);
+    formData.append("keepImages", JSON.stringify(keep));
 
     galleryImages.forEach((imgObj) => {
       formData.append("galleryImages", imgObj.file);
     });
+
+    const newHighlights = galleryImages.map(img => img.highlights || []);
+    formData.append("highlights", JSON.stringify(newHighlights));
 
     try {
       let res;
@@ -237,6 +247,19 @@ export default function GalleryEvents() {
       }
     } catch (err) {
       console.error("Delete Event Error:", err);
+    }
+  };
+
+  const handleUpdateImageHighlights = async (eventId, imageUrl, currentHighlights) => {
+    try {
+      await PatchRequest(ADMIN_UPDATE_GALLERY_EVENT_IMAGE_HIGHLIGHTS(eventId), {
+        imageUrl,
+        highlights: currentHighlights
+      });
+      fetchEvents();
+      setEditingImageIdx(-1);
+    } catch (err) {
+      alert("Failed to update highlights");
     }
   };
 
@@ -355,33 +378,98 @@ export default function GalleryEvents() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 mb-4">
 
                   {/* Existing saved images */}
-                  {existingGalleryImages.map((url, idx) => (
-                    <div key={`existing-${idx}`} className="aspect-square relative rounded-lg overflow-hidden group border-2 border-brand-200">
-                      <img src={url} className="w-full h-full object-cover" alt="" />
-                      <div className="absolute top-1 left-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Saved</div>
-                      <button
-                        onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
+                  {existingGalleryImages.map((img, idx) => {
+                    const url = typeof img === 'string' ? img : img.url;
+                    const highlights = img.highlights || [];
+                    return (
+                      <div key={`existing-${idx}`} className="flex flex-col gap-1">
+                        <div className="aspect-square relative rounded-lg overflow-hidden group border-2 border-brand-200 bg-white">
+                          <img src={url} className="w-full h-full object-cover" alt="" />
+                          <div className="absolute top-1 left-1 bg-brand-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">Saved</div>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                            <button 
+                              onClick={() => {
+                                setIsEditingExisting(true);
+                                setEditingImageIdx(idx);
+                                setHighlightInput("");
+                              }}
+                              className="p-1.5 bg-white text-brand-600 rounded-lg hover:bg-brand-50"
+                            >
+                              <Plus size={14} />
+                            </button>
+                            <button
+                              onClick={() => setExistingGalleryImages(prev => prev.filter((_, i) => i !== idx))}
+                              className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Highlights Display */}
+                        <div className="min-h-[20px] flex flex-wrap gap-1 px-1">
+                          {editingImageIdx === idx && isEditingExisting ? (
+                            <div className="flex gap-1 w-full">
+                              <input 
+                                autoFocus
+                                className="flex-1 text-[8px] px-1 py-0.5 border rounded"
+                                value={highlightInput}
+                                onChange={(e) => setHighlightInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const newH = [...highlights, highlightInput.trim()];
+                                    handleUpdateImageHighlights(editingEventId, url, newH);
+                                    setHighlightInput("");
+                                  }
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              {highlights.map((h, i) => (
+                                <span key={i} className="text-[8px] bg-brand-50 text-brand-700 px-1 rounded flex items-center gap-0.5">
+                                  {h}
+                                  <X size={6} className="cursor-pointer" onClick={() => {
+                                    const newH = highlights.filter((_, hIdx) => hIdx !== i);
+                                    handleUpdateImageHighlights(editingEventId, url, newH);
+                                  }}/>
+                                </span>
+                              ))}
+                              <button onClick={() => { setIsEditingExisting(true); setEditingImageIdx(idx); }} className="text-[8px] text-brand-600 font-bold">+ Add</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
 
                   {/* New images to upload */}
                   {galleryImages.map((imgObj, idx) => (
-                    <div key={`new-${idx}`} className="aspect-square relative rounded-lg overflow-hidden group border-2 border-dashed border-slate-300">
-                      <img src={imgObj.preview} className="w-full h-full object-cover" alt="" />
-                      <div className="absolute top-1 left-1 bg-slate-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">New</div>
-                      <button
-                        onClick={() => {
-                          URL.revokeObjectURL(imgObj.preview);
-                          setGalleryImages(prev => prev.filter((_, i) => i !== idx));
+                    <div key={`new-${idx}`} className="flex flex-col gap-1">
+                      <div className="aspect-square relative rounded-lg overflow-hidden group border-2 border-dashed border-slate-300 bg-white">
+                        <img src={imgObj.preview} className="w-full h-full object-cover" alt="" />
+                        <div className="absolute top-1 left-1 bg-slate-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">New</div>
+                        <button
+                          onClick={() => {
+                            URL.revokeObjectURL(imgObj.preview);
+                            setGalleryImages(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                      <input 
+                        type="text"
+                        placeholder="Highlights (comma separated)"
+                        className="w-full text-[8px] px-1 py-0.5 border rounded"
+                        value={imgObj.highlights?.join(", ") || ""}
+                        onChange={(e) => {
+                          const updated = [...galleryImages];
+                          updated[idx].highlights = e.target.value.split(",").map(h => h.trim()).filter(h => h);
+                          setGalleryImages(updated);
                         }}
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={12} />
-                      </button>
+                      />
                     </div>
                   ))}
 
@@ -396,7 +484,8 @@ export default function GalleryEvents() {
                         const files = Array.from(e.target.files);
                         const newImages = files.map(file => ({
                           file,
-                          preview: URL.createObjectURL(file)
+                          preview: URL.createObjectURL(file),
+                          highlights: []
                         }));
                         setGalleryImages(prev => [...prev, ...newImages]);
                       }}

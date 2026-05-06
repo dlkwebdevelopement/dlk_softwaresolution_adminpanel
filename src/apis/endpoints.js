@@ -105,14 +105,23 @@ export const ADMIN_GET_GALLERY = "/admin/gallery";
 export const ADMIN_CREATE_GALLERY = "/admin/gallery";
 export const ADMIN_UPDATE_GALLERY = (id) => `/admin/gallery/${id}`;
 export const ADMIN_DELETE_GALLERY = (id) => `/admin/gallery/${id}`;
-export const ADMIN_ADD_GALLERY_IMAGES = (id) => `/admin/gallery/${id}/images`;
-export const ADMIN_DELETE_GALLERY_IMAGE = (id) => `/admin/gallery/${id}/image`;
+
+// Batches
+export const ADMIN_ADD_GALLERY_BATCH = (id) => `/admin/gallery/${id}/batches`;
+export const ADMIN_UPDATE_GALLERY_BATCH = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}`;
+export const ADMIN_DELETE_GALLERY_BATCH = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}`;
+
+// Batch Images
+export const ADMIN_ADD_BATCH_IMAGES = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}/images`;
+export const ADMIN_DELETE_BATCH_IMAGE = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}/image`;
+export const ADMIN_UPDATE_BATCH_IMAGE_HIGHLIGHTS = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}/image/highlights`;
 
 // 📅 Gallery Events
 export const ADMIN_GET_ALL_GALLERY_EVENTS = "/admin/gallery-events";
 export const ADMIN_POST_GALLERY_EVENT = "/admin/gallery-events";
 export const ADMIN_PUT_GALLERY_EVENT = (id) => `/admin/gallery-events/${id}`;
 export const ADMIN_DELETE_GALLERY_EVENT = (id) => `/admin/gallery-events/${id}`;
+export const ADMIN_UPDATE_GALLERY_EVENT_IMAGE_HIGHLIGHTS = (id) => `/admin/gallery-events/${id}/image/highlights`;
 
 // 🎥 Videos
 export const ADMIN_GET_VIDEOS = "/admin/videos";
