@@ -44,7 +44,6 @@ const menuItems = [
   { text: "College Management", icon: <GraduationCap size={20} />, path: "/gallery" },
   { text: "College Gallery", icon: <Images size={20} />, path: "/gallery-events" },
   { text: "Office Management", icon: <Building size={20} />, path: "/office-gallery" },
-  { text: "Office Gallery", icon: <Camera size={20} />, path: "/office-gallery-events" },
   { text: "Skills", icon: <Briefcase size={20} />, path: "/skills" },
   { text: "Blogs", icon: <FileText size={20} />, path: "/blogs" },
   { text: "Student Projects", icon: <FileText size={20} />, path: "/student-projects" },

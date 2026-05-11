@@ -149,16 +149,18 @@ export const ADMIN_POST_WORKSHOP = "/admin/workshops";
 export const ADMIN_UPDATE_WORKSHOP = (id) => `/admin/workshops/${id}`;
 export const ADMIN_DELETE_WORKSHOP = (id) => `/admin/workshops/${id}`;
 
-// 🖼️ Office Gallery
+// 🖼️ Office Gallery — Batch
 export const ADMIN_GET_OFFICE_GALLERY = "/admin/office-gallery";
-export const ADMIN_CREATE_OFFICE_GALLERY = "/admin/office-gallery";
-export const ADMIN_UPDATE_OFFICE_GALLERY = (id) => `/admin/office-gallery/${id}`;
-export const ADMIN_DELETE_OFFICE_GALLERY = (id) => `/admin/office-gallery/${id}`;
-export const ADMIN_ADD_OFFICE_GALLERY_IMAGES = (id) => `/admin/office-gallery/${id}/images`;
-export const ADMIN_DELETE_OFFICE_GALLERY_IMAGE = (id) => `/admin/office-gallery/${id}/image`;
+export const ADMIN_CREATE_OFFICE_GALLERY_BATCH = "/admin/office-gallery";
+export const ADMIN_UPDATE_OFFICE_GALLERY_BATCH = (batchId) => `/admin/office-gallery/${batchId}`;
+export const ADMIN_DELETE_OFFICE_GALLERY_BATCH = (batchId) => `/admin/office-gallery/${batchId}`;
 
-// 📅 Office Gallery Events
-export const ADMIN_GET_ALL_OFFICE_GALLERY_EVENTS = "/admin/office-gallery-events";
-export const ADMIN_POST_OFFICE_GALLERY_EVENT = "/admin/office-gallery-events";
-export const ADMIN_PUT_OFFICE_GALLERY_EVENT = (id) => `/admin/office-gallery-events/${id}`;
-export const ADMIN_DELETE_OFFICE_GALLERY_EVENT = (id) => `/admin/office-gallery-events/${id}`;
+// Office Gallery — Categories
+export const ADMIN_ADD_OFFICE_GALLERY_CATEGORY = (batchId) => `/admin/office-gallery/${batchId}/categories`;
+export const ADMIN_UPDATE_OFFICE_GALLERY_CATEGORY = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}`;
+export const ADMIN_DELETE_OFFICE_GALLERY_CATEGORY = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}`;
+
+// Office Gallery — Images
+export const ADMIN_ADD_OFFICE_CATEGORY_IMAGES = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/images`;
+export const ADMIN_DELETE_OFFICE_CATEGORY_IMAGE = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/image`;
+export const ADMIN_UPDATE_OFFICE_CATEGORY_IMAGE_HIGHLIGHTS = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/image/highlights`;

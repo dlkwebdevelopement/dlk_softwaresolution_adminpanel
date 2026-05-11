@@ -13,7 +13,9 @@ import {
   Loader2,
   RotateCcw,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  Layers
 } from "lucide-react";
 import Cropper from 'react-easy-crop';
 import {
@@ -25,11 +27,15 @@ import {
 } from "../../apis/api";
 import {
   ADMIN_GET_OFFICE_GALLERY,
-  ADMIN_CREATE_OFFICE_GALLERY,
-  ADMIN_UPDATE_OFFICE_GALLERY,
-  ADMIN_DELETE_OFFICE_GALLERY,
-  ADMIN_ADD_OFFICE_GALLERY_IMAGES,
-  ADMIN_DELETE_OFFICE_GALLERY_IMAGE,
+  ADMIN_CREATE_OFFICE_GALLERY_BATCH,
+  ADMIN_UPDATE_OFFICE_GALLERY_BATCH,
+  ADMIN_DELETE_OFFICE_GALLERY_BATCH,
+  ADMIN_ADD_OFFICE_GALLERY_CATEGORY,
+  ADMIN_UPDATE_OFFICE_GALLERY_CATEGORY,
+  ADMIN_DELETE_OFFICE_GALLERY_CATEGORY,
+  ADMIN_ADD_OFFICE_CATEGORY_IMAGES,
+  ADMIN_DELETE_OFFICE_CATEGORY_IMAGE,
+  ADMIN_UPDATE_OFFICE_CATEGORY_IMAGE_HIGHLIGHTS,
 } from "../../apis/endpoints";
 import { BASE_URL } from "../../apis/api";
 
@@ -73,29 +79,34 @@ async function getCroppedImgBlob(imageSrc, pixelCrop) {
 }
 
 export default function OfficeGalleryManagement() {
-  const [albums, setAlbums] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  // --- Refactored Multi-Upload State ---
-  const [selectionItems, setSelectionItems] = useState([]); // Array of { file, url, crop, zoom, aspect, pixels, previewUrl }
-  const [currentCropIndex, setCurrentCropIndex] = useState(-1);
+  // --- Modals State ---
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Temporary cropper state
+  // --- Form State ---
+  const [batchForm, setBatchForm] = useState({ id: null, batchName: "", date: "" });
+  const [categoryForm, setCategoryForm] = useState({ id: null, categoryName: "" });
+
+  // --- Multi-Upload State ---
+  const [selectionItems, setSelectionItems] = useState([]); // { file, url, crop, zoom, aspect, pixels, previewUrl, highlights }
+  const [currentCropIndex, setCurrentCropIndex] = useState(-1);
   const [tempCrop, setTempCrop] = useState({ x: 0, y: 0 });
   const [tempZoom, setTempZoom] = useState(1);
   const [tempAspect, setTempAspect] = useState(4 / 3);
   const [tempPixels, setTempPixels] = useState(null);
-  const [isAddAlbumModalOpen, setIsAddAlbumModalOpen] = useState(false);
-  const [editingAlbumId, setEditingAlbumId] = useState(null);
-  const [newAlbumName, setNewAlbumName] = useState("");
-  const [newAlbumFile, setNewAlbumFile] = useState(null);
-  const [newAlbumUrl, setNewAlbumUrl] = useState(null);
-  const [isAddAlbumCropping, setIsAddAlbumCropping] = useState(false);
+
+  // --- Highlights State ---
+  const [editingImageIdx, setEditingImageIdx] = useState(-1);
+  const [highlightInput, setHighlightInput] = useState("");
 
   const aspectRatios = [
     { label: '4:3', value: 4 / 3 },
@@ -104,90 +115,130 @@ export default function OfficeGalleryManagement() {
     { label: '3:2', value: 3 / 2 },
   ];
 
-  const fetchGallery = async () => {
+  const fetchBatches = async () => {
     setLoading(true);
     try {
-      const data = await GetRequest(ADMIN_GET_OFFICE_GALLERY);
-      setAlbums(data);
-      if (selectedAlbum) {
-        const updated = data.find(a => a.id === selectedAlbum.id);
-        if (updated) setSelectedAlbum(updated);
+      const res = await GetRequest(ADMIN_GET_OFFICE_GALLERY);
+      const data = res.success ? res.data : res;
+      setBatches(data || []);
+      
+      // Update selected objects if they exist
+      if (selectedBatch) {
+        const updatedBatch = (data || []).find(b => b._id === selectedBatch._id);
+        if (updatedBatch) {
+          setSelectedBatch(updatedBatch);
+          if (selectedCategoryId) {
+            const updatedCat = updatedBatch.categories?.find(c => c._id === selectedCategoryId);
+            if (!updatedCat && updatedBatch.categories?.length > 0) {
+              setSelectedCategoryId(updatedBatch.categories[0]._id);
+            }
+          }
+        }
       }
     } catch (err) {
-      console.error("Failed to fetch office gallery:", err);
+      console.error("Failed to fetch gallery:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchGallery();
+    fetchBatches();
   }, []);
 
-  const handleEditAlbumInit = (album) => {
-    setEditingAlbumId(album.id);
-    setNewAlbumName(album.albumName);
-    setNewAlbumUrl(album.thumbnail);
-    setNewAlbumFile(null); // No new file selected yet
-    setIsAddAlbumModalOpen(true);
-    setIsAddAlbumCropping(false);
-  };
-
-  const handleDeleteImage = async (albumId, imageUrl) => {
-    if (!window.confirm("Delete this image permanently?")) return;
-    try {
-      await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY_IMAGE(albumId), { data: { imageUrl } });
-      fetchGallery();
-    } catch (err) {
-      alert("Failed to delete image");
+  // --- Batch Handlers ---
+  const handleOpenBatchModal = (batch = null) => {
+    if (batch) {
+      setBatchForm({
+        id: batch._id,
+        batchName: batch.batchName,
+        date: batch.date ? new Date(batch.date).toISOString().split('T')[0] : ""
+      });
+    } else {
+      setBatchForm({ id: null, batchName: "", date: "" });
     }
+    setIsBatchModalOpen(true);
   };
 
-  const handleDeleteAlbum = async (id) => {
-    if (!window.confirm("Delete this entire office album and ALL its images? This cannot be undone.")) return;
-    try {
-      await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY(id));
-      fetchGallery();
-    } catch (err) {
-      alert("Failed to delete album");
-    }
-  };
-
-  const handleCreateAlbum = async () => {
-    if (!newAlbumName.trim()) return alert("Name is required");
-    if (!editingAlbumId && !newAlbumFile) return alert("Thumbnail is required for new albums");
-
+  const handleSaveBatch = async () => {
+    if (!batchForm.batchName.trim()) return alert("Batch name is required");
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("albumName", newAlbumName.trim());
-
     try {
-      if (newAlbumFile) {
-        const blob = await getCroppedImgBlob(newAlbumUrl, tempPixels);
-        formData.append("thumbnail", blob, `thumb_${Date.now()}.jpg`);
-      }
-
-      if (editingAlbumId) {
-        await PutRequest(ADMIN_UPDATE_OFFICE_GALLERY(editingAlbumId), formData);
+      if (batchForm.id) {
+        await PutRequest(ADMIN_UPDATE_OFFICE_GALLERY_BATCH(batchForm.id), {
+          batchName: batchForm.batchName,
+          date: batchForm.date
+        });
       } else {
-        await PostRequest(ADMIN_CREATE_OFFICE_GALLERY, formData);
+        await PostRequest(ADMIN_CREATE_OFFICE_GALLERY_BATCH, {
+          batchName: batchForm.batchName,
+          date: batchForm.date
+        });
       }
-
-      setIsAddAlbumModalOpen(false);
-      setEditingAlbumId(null);
-      setNewAlbumName("");
-      setNewAlbumFile(null);
-      setNewAlbumUrl(null);
-      fetchGallery();
+      setIsBatchModalOpen(false);
+      fetchBatches();
     } catch (err) {
-      alert("Failed to save album");
+      alert("Failed to save batch");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // --- Selection & Cropping Flow ---
+  const handleDeleteBatch = async (batchId) => {
+    if (!window.confirm("Are you sure? This will delete the batch and all its categories and images.")) return;
+    try {
+      await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY_BATCH(batchId));
+      fetchBatches();
+    } catch (err) {
+      alert("Failed to delete batch");
+    }
+  };
 
+  // --- Category Handlers ---
+  const handleOpenCategoryModal = (category = null) => {
+    if (category) {
+      setCategoryForm({ id: category._id, categoryName: category.categoryName });
+    } else {
+      setCategoryForm({ id: null, categoryName: "" });
+    }
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleSaveCategory = async () => {
+    if (!categoryForm.categoryName.trim()) return alert("Category name is required");
+    if (!selectedBatch) return;
+
+    setIsUploading(true);
+    try {
+      if (categoryForm.id) {
+        await PutRequest(ADMIN_UPDATE_OFFICE_GALLERY_CATEGORY(selectedBatch._id, categoryForm.id), {
+          categoryName: categoryForm.categoryName
+        });
+      } else {
+        await PostRequest(ADMIN_ADD_OFFICE_GALLERY_CATEGORY(selectedBatch._id), {
+          categoryName: categoryForm.categoryName
+        });
+      }
+      setIsCategoryModalOpen(false);
+      fetchBatches();
+    } catch (err) {
+      alert("Failed to save category");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteCategory = async (catId) => {
+    if (!window.confirm("Are you sure? This will delete the category and all its images.")) return;
+    try {
+      await DeleteRequest(ADMIN_DELETE_OFFICE_GALLERY_CATEGORY(selectedBatch._id, catId));
+      fetchBatches();
+    } catch (err) {
+      alert("Failed to delete category");
+    }
+  };
+
+  // --- Image Handlers ---
   const onFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
@@ -198,7 +249,8 @@ export default function OfficeGalleryManagement() {
         zoom: 1,
         aspect: 4 / 3,
         pixels: null,
-        previewUrl: null
+        previewUrl: null,
+        highlights: []
       }));
       setSelectionItems(newItems);
       openCropper(0, newItems);
@@ -258,7 +310,9 @@ export default function OfficeGalleryManagement() {
   };
 
   const handleFinalUpload = async () => {
-    if (!selectedAlbum || selectionItems.length === 0) return;
+    if (!selectedBatch || !selectedCategoryId || selectionItems.length === 0) {
+      return alert("Please select a category first");
+    }
     setIsUploading(true);
     const formData = new FormData();
 
@@ -269,10 +323,13 @@ export default function OfficeGalleryManagement() {
         formData.append("images", blob, `cropped_${Date.now()}_${i}.jpg`);
       }
 
-      await PostRequest(ADMIN_ADD_OFFICE_GALLERY_IMAGES(selectedAlbum.id), formData);
+      const highlights = selectionItems.map(item => item.highlights || []);
+      formData.append("highlights", JSON.stringify(highlights));
+
+      await PostRequest(ADMIN_ADD_OFFICE_CATEGORY_IMAGES(selectedBatch._id, selectedCategoryId), formData);
       setSelectionItems([]);
       setIsPreviewModalOpen(false);
-      fetchGallery();
+      fetchBatches();
     } catch (err) {
       alert("Upload failed");
     } finally {
@@ -280,205 +337,374 @@ export default function OfficeGalleryManagement() {
     }
   };
 
+  const handleDeleteImage = async (imageUrl) => {
+    if (!window.confirm("Are you sure you want to delete this image?")) return;
+    try {
+      await DeleteRequest(ADMIN_DELETE_OFFICE_CATEGORY_IMAGE(selectedBatch._id, selectedCategoryId), { data: { imageUrl } });
+      fetchBatches();
+    } catch (err) {
+      alert("Failed to delete image");
+    }
+  };
+
+  const handleUpdateHighlights = async (imageUrl, newHighlights) => {
+    try {
+      await PatchRequest(ADMIN_UPDATE_OFFICE_CATEGORY_IMAGE_HIGHLIGHTS(selectedBatch._id, selectedCategoryId), {
+        imageUrl,
+        highlights: newHighlights
+      });
+      setEditingImageIdx(-1);
+      fetchBatches();
+    } catch (err) {
+      alert("Failed to update highlights");
+    }
+  };
+
+  const currentCategory = selectedBatch?.categories?.find(c => c._id === selectedCategoryId);
+
   return (
     <div className="max-w-[1200px] mx-auto animate-fade-in py-2">
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Office Gallery Management</h1>
-          <p className="text-slate-500">Manage your office media and workplace albums</p>
+          <p className="text-slate-500">Organize and manage gallery by batches and categories</p>
         </div>
         <button
-          onClick={() => { setEditingAlbumId(null); setIsAddAlbumModalOpen(true); }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+          onClick={() => handleOpenBatchModal()}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
         >
-          <Plus size={20} /> Add New Album
+          <Plus size={20} /> Create New Batch
         </button>
       </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="w-10 h-10 text-brand-500 animate-spin mb-4" />
-          <p className="text-slate-500">Loading gallery data...</p>
+          <p className="text-slate-500">Loading gallery...</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-sm uppercase tracking-wider">
-                  <th className="px-6 py-4">Thumbnail</th>
-                  <th className="px-6 py-4">Album Name</th>
-                  <th className="px-6 py-4">Images Count</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {albums.map((album) => (
-                  <tr key={album.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-                        <img
-                          src={album.thumbnail || "https://via.placeholder.com/100?text=No+Thumb"}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 group">
-                        <span className="font-medium text-slate-700">{album.albumName}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">
-                        {album.images?.length || 0} Images
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleEditAlbumInit(album)}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          <Edit2 size={16} /> Edit
-                        </button>
-                        <button
-                          onClick={() => { setSelectedAlbum(album); setIsViewModalOpen(true); }}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          <Eye size={16} /> View
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAlbum(album.id)}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          <Trash2 size={16} /> Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {batches.map((batch) => (
+            <div key={batch._id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden group hover:shadow-md transition-all">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600">
+                    <Calendar size={24} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleOpenBatchModal(batch)}
+                      className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteBatch(batch._id)}
+                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">{batch.batchName}</h3>
+                <p className="text-sm text-slate-500 mb-4">
+                  {batch.date ? new Date(batch.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'No date set'}
+                </p>
+                <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <Layers size={14} />
+                    {batch.categories?.length || 0} Categories
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <ImageIcon size={14} />
+                    {batch.categories?.reduce((acc, cat) => acc + (cat.images?.length || 0), 0)} Images
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedBatch(batch);
+                  if (batch.categories?.length > 0) setSelectedCategoryId(batch.categories[0]._id);
+                  else setSelectedCategoryId(null);
+                  setIsViewModalOpen(true);
+                }}
+                className="w-full py-3 bg-slate-50 border-t border-slate-100 text-sm font-bold text-slate-600 hover:bg-brand-600 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <Eye size={16} /> Manage Categories
+              </button>
+            </div>
+          ))}
+
+          {batches.length === 0 && (
+            <div className="col-span-full bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-12 text-center">
+              <ImageIcon className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">No batches found</h3>
+              <p className="text-slate-500 mb-6">Start by creating your first gallery batch</p>
+              <button
+                onClick={() => handleOpenBatchModal()}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700"
+              >
+                <Plus size={20} /> Create First Batch
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* --- Add/Edit Album Modal --- */}
-      {isAddAlbumModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-slide-in">
+      {/* --- Batch Modal --- */}
+      {isBatchModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-slide-in">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-bold text-slate-900">{editingAlbumId ? "Edit Album" : "Create New Album"}</h2>
-              <button
-                onClick={() => { setIsAddAlbumModalOpen(false); setEditingAlbumId(null); setNewAlbumName(""); setNewAlbumFile(null); setNewAlbumUrl(null); }}
-                className="p-1 hover:bg-white rounded-full transition-colors"
-              >
+              <h2 className="text-lg font-bold text-slate-900">{batchForm.id ? "Edit Batch" : "Create New Batch"}</h2>
+              <button onClick={() => setIsBatchModalOpen(false)} className="p-1 hover:bg-white rounded-full transition-colors">
                 <X size={20} className="text-slate-400" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Album Name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Batch Name</label>
                 <input
                   type="text"
-                  value={newAlbumName}
-                  onChange={(e) => setNewAlbumName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
-                  placeholder="Enter album name..."
+                  value={batchForm.batchName}
+                  onChange={(e) => setBatchForm({ ...batchForm, batchName: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                  placeholder="e.g. Batch 2024 - Office Life"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Thumbnail</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Batch Date</label>
                 <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    if (e.target.files[0]) {
-                      setNewAlbumFile(e.target.files[0]);
-                      setNewAlbumUrl(URL.createObjectURL(e.target.files[0]));
-                      setIsAddAlbumCropping(true);
-                    }
-                  }}
-                  className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                  type="date"
+                  value={batchForm.date}
+                  onChange={(e) => setBatchForm({ ...batchForm, date: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
                 />
               </div>
-              {isAddAlbumCropping && newAlbumUrl && (
-                <div className="h-48 bg-slate-100 rounded-xl overflow-hidden relative">
-                  <Cropper
-                    image={newAlbumUrl}
-                    crop={tempCrop}
-                    zoom={tempZoom}
-                    aspect={1}
-                    onCropChange={setTempCrop}
-                    onCropComplete={onCropComplete}
-                    onZoomChange={setTempZoom}
-                  />
-                </div>
-              )}
             </div>
             <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setIsAddAlbumModalOpen(false)} className="px-4 py-2 text-slate-600 font-medium">Cancel</button>
+              <button onClick={() => setIsBatchModalOpen(false)} className="px-4 py-2 text-slate-600 font-bold">Cancel</button>
               <button
-                onClick={handleCreateAlbum}
-                disabled={isUploading}
-                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 disabled:opacity-50"
+                onClick={handleSaveBatch}
+                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-500/20"
               >
-                {isUploading ? "Saving..." : "Save Album"}
+                {batchForm.id ? "Update Batch" : "Create Batch"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- View Gallery Modal --- */}
-      {isViewModalOpen && selectedAlbum && (
+      {/* --- Category Modal --- */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-slide-in">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-bold text-slate-900">{categoryForm.id ? "Edit Category" : "Add Category"}</h2>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="p-1 hover:bg-white rounded-full transition-colors">
+                <X size={20} className="text-slate-400" />
+              </button>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Category Name</label>
+              <input
+                type="text"
+                value={categoryForm.categoryName}
+                onChange={(e) => setCategoryForm({ ...categoryForm, categoryName: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
+                placeholder="e.g. Office Opening, Team Lunch..."
+              />
+            </div>
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+              <button onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 text-slate-600 font-bold">Cancel</button>
+              <button
+                onClick={handleSaveCategory}
+                className="px-6 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-500/20"
+              >
+                {categoryForm.id ? "Update Category" : "Add Category"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- View Modal (Manage Categories & Images) --- */}
+      {isViewModalOpen && selectedBatch && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 capitalize">{selectedAlbum.albumName} Gallery</h2>
-                <p className="text-xs text-slate-500">Manage images for this category</p>
+                <h2 className="text-xl font-bold text-slate-900">{selectedBatch.batchName}</h2>
+                <p className="text-xs text-slate-500">Manage categories and upload gallery images</p>
               </div>
               <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                 <X size={24} className="text-slate-400" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
-                {/* Add More Button */}
-                <label className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-all group">
-                  <input type="file" multiple accept="image/*" className="hidden" onChange={onFileChange} />
-                  <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-brand-100 flex items-center justify-center text-slate-400 group-hover:text-brand-600 transition-colors">
-                    <Plus size={24} />
-                  </div>
-                  <span className="text-xs font-medium text-slate-500 group-hover:text-brand-600">Add Images</span>
-                </label>
+            <div className="flex-1 flex overflow-hidden">
+              {/* Category Sidebar */}
+              <div className="w-64 border-r border-slate-100 bg-slate-50 flex flex-col">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-400 uppercase">Categories</span>
+                  <button
+                    onClick={() => handleOpenCategoryModal()}
+                    className="p-1.5 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                  {selectedBatch.categories?.map((cat) => (
+                    <div
+                      key={cat._id}
+                      className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${selectedCategoryId === cat._id
+                          ? "bg-brand-600 text-white shadow-md"
+                          : "text-slate-600 hover:bg-white hover:shadow-sm"
+                        }`}
+                      onClick={() => setSelectedCategoryId(cat._id)}
+                    >
+                      <span className="text-sm font-semibold truncate flex-1">{cat.categoryName}</span>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleOpenCategoryModal(cat); }}
+                          className={`p-1 rounded ${selectedCategoryId === cat._id ? "hover:bg-brand-500" : "hover:bg-slate-100"}`}
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat._id); }}
+                          className={`p-1 rounded ${selectedCategoryId === cat._id ? "hover:bg-brand-500 text-brand-100" : "hover:bg-red-50 text-red-500"}`}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {(!selectedBatch.categories || selectedBatch.categories.length === 0) && (
+                    <div className="p-4 text-center">
+                      <p className="text-xs text-slate-400 italic">No categories yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                {/* Existing Images */}
-                {selectedAlbum.images?.map((img, idx) => (
-                  <div key={idx} className="aspect-square relative rounded-xl overflow-hidden group shadow-sm border border-slate-200 bg-white">
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button
-                        onClick={() => handleDeleteImage(selectedAlbum.id, img)}
-                        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transform scale-75 group-hover:scale-100 transition-all shadow-lg"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+              {/* Image Grid */}
+              <div className="flex-1 overflow-y-auto bg-white p-6">
+                {!selectedCategoryId ? (
+                  <div className="h-full flex flex-col items-center justify-center opacity-40">
+                    <Layers size={48} className="mb-4" />
+                    <p className="font-bold">Select or create a category to manage images</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <span className="w-2 h-8 bg-brand-600 rounded-full"></span>
+                        {currentCategory?.categoryName}
+                      </h3>
+                      <label className="inline-flex items-center gap-2 px-4 py-2 bg-brand-50 text-brand-600 rounded-xl font-bold cursor-pointer hover:bg-brand-100 transition-all">
+                        <Upload size={18} />
+                        Upload Images
+                        <input type="file" multiple accept="image/*" className="hidden" onChange={onFileChange} />
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {currentCategory?.images?.map((img, idx) => (
+                        <div key={idx} className="flex flex-col gap-2 group animate-scale-up">
+                          <div className="aspect-square relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm transition-all group-hover:shadow-md">
+                            <img src={img.url} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => { setEditingImageIdx(idx); setHighlightInput(""); }}
+                                className="p-2 bg-white text-brand-600 rounded-full hover:bg-brand-50 shadow-lg"
+                                title="Add Highlights"
+                              >
+                                <Plus size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteImage(img.url)}
+                                className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                          
+                          {/* Highlights */}
+                          <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 min-h-[40px]">
+                            {editingImageIdx === idx ? (
+                              <div className="flex gap-1">
+                                <input
+                                  autoFocus
+                                  className="flex-1 text-[10px] px-2 py-1 border rounded bg-white outline-none focus:ring-1 focus:ring-brand-500"
+                                  placeholder="Type and enter..."
+                                  value={highlightInput}
+                                  onChange={(e) => setHighlightInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && highlightInput.trim()) {
+                                      handleUpdateHighlights(img.url, [...(img.highlights || []), highlightInput.trim()]);
+                                      setHighlightInput("");
+                                    }
+                                  }}
+                                />
+                                <button
+                                  onClick={() => {
+                                    if (highlightInput.trim()) {
+                                      handleUpdateHighlights(img.url, [...(img.highlights || []), highlightInput.trim()]);
+                                      setHighlightInput("");
+                                    } else setEditingImageIdx(-1);
+                                  }}
+                                  className="p-1 bg-brand-600 text-white rounded shadow-sm"
+                                >
+                                  <Check size={12} />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-wrap gap-1">
+                                {(img.highlights || []).map((h, hIdx) => (
+                                  <span key={hIdx} className="text-[9px] bg-white text-slate-600 px-1.5 py-0.5 rounded-md border border-slate-200 flex items-center gap-1 group/tag">
+                                    {h}
+                                    <X
+                                      size={8}
+                                      className="cursor-pointer hover:text-red-500"
+                                      onClick={() => handleUpdateHighlights(img.url, img.highlights.filter((_, i) => i !== hIdx))}
+                                    />
+                                  </span>
+                                ))}
+                                <button
+                                  onClick={() => setEditingImageIdx(idx)}
+                                  className="text-[10px] text-brand-600 font-bold hover:underline px-1"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {currentCategory?.images?.length === 0 && (
+                        <div className="col-span-full py-20 text-center">
+                          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                            <Upload size={32} />
+                          </div>
+                          <p className="text-slate-400 font-medium">No images in this category</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
             <div className="px-6 py-4 border-t border-slate-100 bg-white flex justify-end">
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-6 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors"
+                className="px-8 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all"
               >
-                Close
+                Close Manager
               </button>
             </div>
           </div>
@@ -487,7 +713,7 @@ export default function OfficeGalleryManagement() {
 
       {/* --- Batch Crop Modal --- */}
       {isCropModalOpen && selectionItems[currentCropIndex] && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
           <div className="bg-white w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
               <div className="flex items-center gap-3">
@@ -587,7 +813,7 @@ export default function OfficeGalleryManagement() {
 
       {/* --- Post-Crop Selection Preview Modal --- */}
       {isPreviewModalOpen && selectionItems.length > 0 && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
               <div>
@@ -623,11 +849,24 @@ export default function OfficeGalleryManagement() {
                         <CheckCircle2 size={16} className="text-emerald-500" />
                       </div>
                     </div>
-                    <p className="text-[10px] font-medium text-slate-400 truncate px-1">{item.file.name}</p>
+                    <div className="px-1">
+                      <p className="text-[10px] font-medium text-slate-400 truncate mb-1">{item.file.name}</p>
+                      <input 
+                        type="text"
+                        placeholder="Add highlights (comma separated)"
+                        className="w-full text-[10px] px-2 py-1 bg-white border border-slate-200 rounded focus:border-brand-500 outline-none"
+                        value={item.highlights.join(", ")}
+                        onChange={(e) => {
+                          const updated = [...selectionItems];
+                          updated[idx].highlights = e.target.value.split(",").map(h => h.trim()).filter(h => h);
+                          setSelectionItems(updated);
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
 
-                {/* Quick Add More while in preview */}
+                {/* Quick Add More */}
                 <label className="aspect-square border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-all group">
                   <input type="file" multiple accept="image/*" className="hidden"
                     onChange={(e) => {
@@ -639,7 +878,8 @@ export default function OfficeGalleryManagement() {
                         zoom: 1,
                         aspect: 4 / 3,
                         pixels: null,
-                        previewUrl: null
+                        previewUrl: null,
+                        highlights: []
                       }));
                       const updated = [...selectionItems, ...newItems];
                       setSelectionItems(updated);
@@ -649,7 +889,6 @@ export default function OfficeGalleryManagement() {
                   <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-brand-100 flex items-center justify-center text-slate-400 group-hover:text-brand-600 transition-colors">
                     <Plus size={24} />
                   </div>
-                  <span className="text-xs font-bold text-slate-400 group-hover:text-brand-600">Add More</span>
                 </label>
               </div>
             </div>
@@ -657,136 +896,22 @@ export default function OfficeGalleryManagement() {
             <div className="px-6 py-6 border-t border-slate-100 bg-white flex justify-between items-center">
               <div className="flex items-center gap-2 text-slate-500 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
                 <AlertCircle size={18} className="text-brand-500" />
-                <span className="text-sm font-medium">{selectionItems.length} images ready to be saved</span>
+                <span className="text-sm font-medium">{selectionItems.length} images ready</span>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => { setSelectionItems([]); setIsPreviewModalOpen(false); }}
                   className="px-6 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
                 >
-                  Discard All
+                  Discard
                 </button>
                 <button
                   onClick={handleFinalUpload}
                   className="px-10 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-500/30 flex items-center gap-2"
                 >
-                  Confirm & Upload All
+                  Confirm & Upload
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- Add New Album Modal --- */}
-      {isAddAlbumModalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
-              <h2 className="text-xl font-bold text-slate-900">Add New Album</h2>
-              <button
-                onClick={() => { setIsAddAlbumModalOpen(false); setNewAlbumUrl(null); }}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-              >
-                <X size={20} className="text-slate-400" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Album Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Workshop 2024"
-                  value={newAlbumName}
-                  onChange={(e) => setNewAlbumName(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Album Thumbnail</label>
-                {!newAlbumUrl ? (
-                  <label className="w-full aspect-video border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-all group">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files?.[0]) {
-                          setNewAlbumFile(e.target.files[0]);
-                          setNewAlbumUrl(URL.createObjectURL(e.target.files[0]));
-                          setIsAddAlbumCropping(true);
-                        }
-                      }}
-                    />
-                    <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-brand-100 flex items-center justify-center text-slate-400 group-hover:text-brand-600 transition-colors">
-                      <Upload size={20} />
-                    </div>
-                    <span className="text-xs font-bold text-slate-400 group-hover:text-brand-600">Click to Select Thumbnail</span>
-                  </label>
-                ) : (
-                  <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200">
-                    {isAddAlbumCropping ? (
-                      <div className="relative h-full bg-slate-900">
-                        <Cropper
-                          image={newAlbumUrl}
-                          crop={tempCrop}
-                          zoom={tempZoom}
-                          aspect={4 / 3}
-                          onCropChange={setTempCrop}
-                          onCropComplete={onCropComplete}
-                          onZoomChange={setTempZoom}
-                        />
-                        <button
-                          onClick={() => setIsAddAlbumCropping(false)}
-                          className="absolute bottom-4 right-4 px-4 py-2 bg-brand-600 text-white rounded-lg text-xs font-bold shadow-lg"
-                        >
-                          Confirm Crop
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <img
-                          src={newAlbumUrl}
-                          className="w-full h-full object-cover"
-                          alt="Preview"
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => setIsAddAlbumCropping(true)}
-                            className="p-2 bg-white text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => { setNewAlbumUrl(null); setNewAlbumFile(null); }}
-                            className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t border-slate-100 flex gap-3">
-              <button
-                onClick={() => { setIsAddAlbumModalOpen(false); setEditingAlbumId(null); setNewAlbumName(""); setNewAlbumFile(null); setNewAlbumUrl(null); }}
-                className="flex-1 py-2.5 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateAlbum}
-                disabled={isUploading || isAddAlbumCropping}
-                className="flex-[2] py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-500/30 disabled:opacity-50"
-              >
-                {isUploading ? 'Saving...' : editingAlbumId ? 'Update Album' : 'Create Album'}
-              </button>
             </div>
           </div>
         </div>
@@ -794,18 +919,11 @@ export default function OfficeGalleryManagement() {
 
       {/* --- Uploading Loader --- */}
       {isUploading && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white p-10 rounded-3xl shadow-2xl flex flex-col items-center">
-            <div className="relative mb-6">
-              <Loader2 className="w-14 h-14 text-brand-600 animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-[10px] font-bold text-brand-600">
-                  {selectionItems.length}
-                </div>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-1">Uploading Assets</h3>
-            <p className="text-sm text-slate-500 text-center max-w-[200px]">We're processing and securing your gallery images...</p>
+            <Loader2 className="w-14 h-14 text-brand-600 animate-spin mb-4" />
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Processing Request</h3>
+            <p className="text-sm text-slate-500 text-center">Please wait while we sync your changes...</p>
           </div>
         </div>
       )}
