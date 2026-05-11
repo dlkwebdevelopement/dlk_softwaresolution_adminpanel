@@ -57,6 +57,8 @@ const Enquiries = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   // ✅ Navigation & Reply State
   const [view, setView] = useState("list"); // list, detail
@@ -103,12 +105,42 @@ const Enquiries = () => {
       await DeleteRequest(ADMIN_DELETE_ENQUIRY(deleteId));
       showToast("Purged successfully");
       setDeleteId(null);
+      setSelectedIds(prev => prev.filter(id => id !== deleteId));
       if (view === "detail") setView("list");
       fetchEnquiries();
     } catch (err) {
       showToast("Purge failed", "error");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Permanently purge ${selectedIds.length} selected records?`)) return;
+    try {
+      setIsBulkDeleting(true);
+      for (const id of selectedIds) {
+        await DeleteRequest(ADMIN_DELETE_ENQUIRY(id));
+      }
+      showToast(`${selectedIds.length} records purged`);
+      setSelectedIds([]);
+      fetchEnquiries();
+    } catch (err) {
+      showToast("Bulk purge failed", "error");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = (paginatedList) => {
+    if (selectedIds.length === paginatedList.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedList.map(item => item.id));
     }
   };
 
@@ -204,7 +236,19 @@ const Enquiries = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-black text-slate-900 mb-0.5">Course Enquiries</h1>
-              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-none">Management Terminal</p>
+              <div className="flex items-center gap-3">
+                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-none">Management Terminal</p>
+                {selectedIds.length > 0 && (
+                  <button 
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="flex items-center gap-2 px-3 py-1 bg-red-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    Delete {selectedIds.length} Selected
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="flex flex-wrap items-center gap-2">
@@ -283,6 +327,14 @@ const Enquiries = () => {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50/50 border-b border-slate-100 font-black text-[10px] text-slate-400 uppercase tracking-widest">
+                      <th className="px-6 py-4">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                          checked={paginatedList.length > 0 && selectedIds.length === paginatedList.length}
+                          onChange={() => toggleSelectAll(paginatedList)}
+                        />
+                      </th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4">Sender</th>
                       <th className="px-6 py-4">Course</th>
@@ -299,8 +351,16 @@ const Enquiries = () => {
                       paginatedList.map((enquiry) => (
                         <tr 
                           key={enquiry.id} 
-                          className={`hover:bg-slate-50 transition-all group ${!enquiry.isRead ? 'bg-amber-50/20' : ''} ${highlightId === enquiry.id ? 'record-highlight border-y border-brand-500' : ''}`}
+                          className={`hover:bg-slate-50 transition-all group ${selectedIds.includes(enquiry.id) ? 'bg-brand-50/30' : !enquiry.isRead ? 'bg-amber-50/20' : ''} ${highlightId === enquiry.id ? 'record-highlight border-y border-brand-500' : ''}`}
                         >
+                          <td className="px-6 py-3">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                              checked={selectedIds.includes(enquiry.id)}
+                              onChange={() => toggleSelect(enquiry.id)}
+                            />
+                          </td>
                           <td className="px-6 py-3">
                              {enquiry.isReply ? (
                                <span className="inline-flex items-center gap-1.5 text-blue-600 text-[9px] font-black uppercase tracking-tighter">

@@ -54,6 +54,8 @@ const Register = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   // ✅ Navigation & Reply State
   const [view, setView] = useState("list"); // list, detail
@@ -100,12 +102,42 @@ const Register = () => {
       await DeleteRequest(ADMIN_DELETE_REGISTER(deleteId));
       showToast("Registration deleted");
       setDeleteId(null);
+      setSelectedIds(prev => prev.filter(id => id !== deleteId));
       if (view === "detail") setView("list");
       fetchRegistrations();
     } catch (err) {
       showToast("Delete failed", "error");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Permanently purge ${selectedIds.length} selected records?`)) return;
+    try {
+      setIsBulkDeleting(true);
+      for (const id of selectedIds) {
+        await DeleteRequest(ADMIN_DELETE_REGISTER(id));
+      }
+      showToast(`${selectedIds.length} records purged`);
+      setSelectedIds([]);
+      fetchRegistrations();
+    } catch (err) {
+      showToast("Bulk purge failed", "error");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = (paginatedList) => {
+    if (selectedIds.length === paginatedList.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedList.map(item => item.id));
     }
   };
 
@@ -210,7 +242,19 @@ const Register = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div>
               <h1 className="text-3xl font-black text-slate-900 mb-1">Student Admissions</h1>
-              <p className="text-slate-400 font-bold uppercase text-[12px] tracking-widest leading-relaxed">Registration Management System</p>
+              <div className="flex items-center gap-4">
+                <p className="text-slate-400 font-bold uppercase text-[12px] tracking-widest leading-relaxed">Registration Management System</p>
+                {selectedIds.length > 0 && (
+                  <button 
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    Delete {selectedIds.length} Selected
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="flex flex-wrap items-center gap-4">
@@ -289,6 +333,14 @@ const Register = () => {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50/50 border-b border-slate-100 font-black text-[11px] text-slate-400 uppercase tracking-widest">
+                      <th className="px-8 py-5">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                          checked={paginatedList.length > 0 && selectedIds.length === paginatedList.length}
+                          onChange={() => toggleSelectAll(paginatedList)}
+                        />
+                      </th>
                       <th className="px-8 py-5">Status</th>
                       <th className="px-8 py-5">Student Information</th>
                       <th className="px-8 py-5">Service Category</th>
@@ -305,8 +357,16 @@ const Register = () => {
                       paginatedList.map((student) => (
                         <tr 
                           key={student.id} 
-                          className={`hover:bg-slate-50/80 transition-all group ${!student.isRead ? 'bg-amber-50/20' : ''} ${highlightId === student.id ? 'record-highlight border-y border-brand-500' : ''}`}
+                          className={`hover:bg-slate-50/80 transition-all group ${selectedIds.includes(student.id) ? 'bg-brand-50/30' : !student.isRead ? 'bg-amber-50/20' : ''} ${highlightId === student.id ? 'record-highlight border-y border-brand-500' : ''}`}
                         >
+                          <td className="px-8 py-4">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                              checked={selectedIds.includes(student.id)}
+                              onChange={() => toggleSelect(student.id)}
+                            />
+                          </td>
                           <td className="px-8 py-4">
                              {student.isReply ? (
                                <span className="inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-tighter">
