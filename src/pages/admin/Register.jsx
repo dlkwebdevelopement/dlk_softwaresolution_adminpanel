@@ -341,10 +341,11 @@ const Register = () => {
                           onChange={() => toggleSelectAll(paginatedList)}
                         />
                       </th>
-                      <th className="px-8 py-5">Status</th>
+                      <th className="px-8 py-5 hidden md:table-cell">Submitted Date</th>
                       <th className="px-8 py-5">Student Information</th>
                       <th className="px-8 py-5">Service Category</th>
                       <th className="px-8 py-5 hidden md:table-cell">Admission Details</th>
+                      <th className="px-8 py-5">Status</th>
                       <th className="px-8 py-5 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -367,20 +368,11 @@ const Register = () => {
                               onChange={() => toggleSelect(student.id)}
                             />
                           </td>
-                          <td className="px-8 py-4">
-                             {student.isReply ? (
-                               <span className="inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-tighter">
-                                 <CheckCheck size={12} /> Notified
-                               </span>
-                             ) : student.isRead ? (
-                               <span className="inline-flex items-center gap-1.5 text-brand-600 text-[10px] font-black uppercase tracking-tighter">
-                                 <Eye size={12} /> Processed
-                               </span>
-                             ) : (
-                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-black uppercase animate-pulse">
-                                 Pending Admission
-                               </span>
-                             )}
+                          <td className="px-8 py-4 hidden md:table-cell">
+                             <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-flex items-center gap-1.5">
+                                <Calendar size={11} className="text-brand-400"/>
+                                {new Date(student.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                             </div>
                           </td>
                           <td className="px-8 py-4 text-base">
                             <div>
@@ -399,9 +391,21 @@ const Register = () => {
                                 <BookOpen size={16} className="text-brand-500 opacity-70"/>
                                 <span className="text-[14px] font-bold text-slate-600">{student.courseName}</span>
                              </div>
-                             <div className="text-[11px] font-bold text-slate-400 mt-1 flex items-center gap-1 shadow-none">
-                                <Calendar size={10}/> {new Date(student.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                             </div>
+                          </td>
+                          <td className="px-8 py-4">
+                             {student.isReply ? (
+                               <span className="inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-tighter">
+                                 <CheckCheck size={12} /> Notified
+                               </span>
+                             ) : student.isRead ? (
+                               <span className="inline-flex items-center gap-1.5 text-brand-600 text-[10px] font-black uppercase tracking-tighter">
+                                 <Eye size={12} /> Processed
+                               </span>
+                             ) : (
+                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-black uppercase animate-pulse">
+                                 Pending Admission
+                               </span>
+                             )}
                           </td>
                           <td className="px-8 py-4 text-right">
                             <div className="flex items-center justify-end gap-3">

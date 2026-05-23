@@ -335,10 +335,11 @@ const Enquiries = () => {
                           onChange={() => toggleSelectAll(paginatedList)}
                         />
                       </th>
-                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 hidden md:table-cell">Date</th>
                       <th className="px-6 py-4">Sender</th>
                       <th className="px-6 py-4">Course</th>
                       <th className="px-6 py-4">Origin</th>
+                      <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Action</th>
                     </tr>
                   </thead>
@@ -361,20 +362,11 @@ const Enquiries = () => {
                               onChange={() => toggleSelect(enquiry.id)}
                             />
                           </td>
-                          <td className="px-6 py-3">
-                             {enquiry.isReply ? (
-                               <span className="inline-flex items-center gap-1.5 text-blue-600 text-[9px] font-black uppercase tracking-tighter">
-                                 <CheckCheck size={10} /> Replied
-                               </span>
-                             ) : enquiry.isRead ? (
-                               <span className="inline-flex items-center gap-1.5 text-brand-600 text-[9px] font-black uppercase tracking-tighter">
-                                 <Eye size={10} /> Viewed
-                               </span>
-                             ) : (
-                               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-black uppercase animate-pulse">
-                                 New Inbound
-                               </span>
-                             )}
+                          <td className="px-6 py-3 hidden md:table-cell">
+                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-flex items-center gap-1.5">
+                              <Clock size={10} className="text-brand-400"/>
+                              {enquiry.createdAt ? new Date(enquiry.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                            </div>
                           </td>
                           <td className="px-6 py-3">
                             <div>
@@ -407,6 +399,21 @@ const Enquiries = () => {
                                  <Clock size={10} className="text-slate-400"/> {enquiry.timeslot}
                                </div>
                              </div>
+                          </td>
+                          <td className="px-6 py-3">
+                             {enquiry.isReply ? (
+                               <span className="inline-flex items-center gap-1.5 text-blue-600 text-[9px] font-black uppercase tracking-tighter">
+                                 <CheckCheck size={10} /> Replied
+                               </span>
+                             ) : enquiry.isRead ? (
+                               <span className="inline-flex items-center gap-1.5 text-brand-600 text-[9px] font-black uppercase tracking-tighter">
+                                 <Eye size={10} /> Viewed
+                               </span>
+                             ) : (
+                               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-black uppercase animate-pulse">
+                                 New Inbound
+                               </span>
+                             )}
                           </td>
                           <td className="px-6 py-3 text-right">
                             <div className="flex items-center justify-end gap-2">
@@ -520,6 +527,12 @@ const Enquiries = () => {
                                <span className="inline-block px-3 py-1 rounded-lg bg-brand-500 text-white text-[10px] font-black uppercase tracking-widest">
                                  {selectedEnquiry.inquiryType}
                                </span>
+                             )}
+                             {selectedEnquiry.createdAt && (
+                               <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                                 <Clock size={11} className="text-brand-400"/>
+                                 Submitted: {new Date(selectedEnquiry.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                               </div>
                              )}
                           </div>
                        </div>

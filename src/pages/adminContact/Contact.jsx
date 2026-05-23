@@ -17,7 +17,8 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Calendar
 } from "lucide-react";
 import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/api";
 import {
@@ -305,10 +306,10 @@ const Contact = () => {
                           onChange={() => toggleSelectAll(paginatedContacts)}
                         />
                       </th>
-                      <th className="px-8 py-5">Status</th>
+                      <th className="px-8 py-5">Received Date</th>
                       <th className="px-8 py-5">Sender Details</th>
                       <th className="px-8 py-5 hidden md:table-cell">Message Preview</th>
-                      <th className="px-8 py-5">Received Date</th>
+                      <th className="px-8 py-5">Status</th>
                       <th className="px-8 py-5 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -332,6 +333,20 @@ const Contact = () => {
                             />
                           </td>
                           <td className="px-8 py-4">
+                             <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-block">
+                                {new Date(contact.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                             </div>
+                          </td>
+                          <td className="px-8 py-4 text-base">
+                            <div>
+                               <div className="font-black text-slate-800 leading-none mb-1.5">{contact.first_name} {contact.last_name}</div>
+                               <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight">{contact.email}</div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-4 hidden md:table-cell max-w-[280px]">
+                             <p className="text-[14px] text-slate-500 line-clamp-1 italic font-medium">"{contact.message}"</p>
+                          </td>
+                          <td className="px-8 py-4">
                              {contact.isReply ? (
                                <span className="inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-tighter">
                                  <CheckCheck size={12} /> Replied
@@ -345,20 +360,6 @@ const Contact = () => {
                                  New Inquiry
                                </span>
                              )}
-                          </td>
-                          <td className="px-8 py-4 text-base">
-                            <div>
-                               <div className="font-black text-slate-800 leading-none mb-1.5">{contact.first_name} {contact.last_name}</div>
-                               <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight">{contact.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-8 py-4 hidden md:table-cell max-w-[280px]">
-                             <p className="text-[14px] text-slate-500 line-clamp-1 italic font-medium">"{contact.message}"</p>
-                          </td>
-                          <td className="px-8 py-4">
-                             <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-block">
-                                {new Date(contact.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                             </div>
                           </td>
                           <td className="px-8 py-4 text-right">
                             <div className="flex items-center justify-end gap-3">
@@ -445,6 +446,10 @@ const Contact = () => {
                       <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
                          <Clock size={16} className="text-brand-500 shrink-0" />
                          <span>{new Date(selectedContact.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
+                         <Calendar size={16} className="text-brand-500 shrink-0" />
+                         <span>Received: {new Date(selectedContact.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                    </div>
                    
