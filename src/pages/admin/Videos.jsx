@@ -10,7 +10,7 @@ import {
   Link as LinkIcon
 } from "lucide-react";
 import axios from "axios";
-import { GetRequest, PostRequest, DeleteRequest, PutRequest } from "../../apis/config";
+import { GetRequest, PostRequest, DeleteRequest, PutRequest } from "../../apis/api";
 import { 
   ADMIN_GET_VIDEOS, 
   ADMIN_POST_VIDEOS, 

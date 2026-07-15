@@ -23,7 +23,7 @@ import {
   PostRequest,
   DeleteRequest,
   PutRequest,
-} from "../../apis/config";
+} from "../../apis/api";
 import { BASE_URL } from "../../apis/api";
 
 import {

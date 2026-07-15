@@ -17,9 +17,10 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Calendar
 } from "lucide-react";
-import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/config";
+import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/api";
 import {
   ADMIN_GET_ALL_CONTACTS,
   ADMIN_DELETE_CONTACTS,
@@ -52,6 +53,8 @@ const Contact = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   // ✅ Navigation & Reply State
   const [view, setView] = useState("list"); // list, detail
@@ -98,12 +101,42 @@ const Contact = () => {
       await DeleteRequest(ADMIN_DELETE_CONTACTS(deleteId));
       showToast("Message deleted");
       setDeleteId(null);
+      setSelectedIds(prev => prev.filter(id => id !== deleteId));
       if (view === "detail") setView("list");
       fetchContacts();
     } catch (err) {
       showToast("Delete failed", "error");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Permanently purge ${selectedIds.length} selected records?`)) return;
+    try {
+      setIsBulkDeleting(true);
+      for (const id of selectedIds) {
+        await DeleteRequest(ADMIN_DELETE_CONTACTS(id));
+      }
+      showToast(`${selectedIds.length} records purged`);
+      setSelectedIds([]);
+      fetchContacts();
+    } catch (err) {
+      showToast("Bulk purge failed", "error");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = (paginatedContacts) => {
+    if (selectedIds.length === paginatedContacts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedContacts.map(item => item.id));
     }
   };
 
@@ -196,7 +229,19 @@ const Contact = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div>
               <h1 className="text-3xl font-black text-slate-900 mb-1">Contact Messages</h1>
-              <p className="text-slate-400 font-bold uppercase text-[12px] tracking-widest leading-relaxed">Enquiry Management Dashboard</p>
+              <div className="flex items-center gap-4">
+                <p className="text-slate-400 font-bold uppercase text-[12px] tracking-widest leading-relaxed">Enquiry Management Dashboard</p>
+                {selectedIds.length > 0 && (
+                  <button 
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    Delete {selectedIds.length} Selected
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
@@ -253,10 +298,18 @@ const Contact = () => {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50/50 border-b border-slate-100 font-black text-[11px] text-slate-400 uppercase tracking-widest">
-                      <th className="px-8 py-5">Status</th>
+                      <th className="px-8 py-5">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                          checked={paginatedContacts.length > 0 && selectedIds.length === paginatedContacts.length}
+                          onChange={() => toggleSelectAll(paginatedContacts)}
+                        />
+                      </th>
+                      <th className="px-8 py-5">Received Date</th>
                       <th className="px-8 py-5">Sender Details</th>
                       <th className="px-8 py-5 hidden md:table-cell">Message Preview</th>
-                      <th className="px-8 py-5">Received Date</th>
+                      <th className="px-8 py-5">Status</th>
                       <th className="px-8 py-5 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -269,8 +322,30 @@ const Contact = () => {
                       paginatedContacts.map((contact) => (
                         <tr 
                           key={contact.id} 
-                          className={`hover:bg-slate-50/80 transition-all group ${!contact.isRead ? 'bg-amber-50/20' : ''} ${highlightId === contact.id ? 'record-highlight border-y border-brand-500' : ''}`}
+                          className={`hover:bg-slate-50/80 transition-all group ${selectedIds.includes(contact.id) ? 'bg-brand-50/30' : !contact.isRead ? 'bg-amber-50/20' : ''} ${highlightId === contact.id ? 'record-highlight border-y border-brand-500' : ''}`}
                         >
+                          <td className="px-8 py-4">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                              checked={selectedIds.includes(contact.id)}
+                              onChange={() => toggleSelect(contact.id)}
+                            />
+                          </td>
+                          <td className="px-8 py-4">
+                             <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-block">
+                                {new Date(contact.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                             </div>
+                          </td>
+                          <td className="px-8 py-4 text-base">
+                            <div>
+                               <div className="font-black text-slate-800 leading-none mb-1.5">{contact.first_name} {contact.last_name}</div>
+                               <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight">{contact.email}</div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-4 hidden md:table-cell max-w-[280px]">
+                             <p className="text-[14px] text-slate-500 line-clamp-1 italic font-medium">"{contact.message}"</p>
+                          </td>
                           <td className="px-8 py-4">
                              {contact.isReply ? (
                                <span className="inline-flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-tighter">
@@ -285,20 +360,6 @@ const Contact = () => {
                                  New Inquiry
                                </span>
                              )}
-                          </td>
-                          <td className="px-8 py-4 text-base">
-                            <div>
-                               <div className="font-black text-slate-800 leading-none mb-1.5">{contact.first_name} {contact.last_name}</div>
-                               <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight">{contact.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-8 py-4 hidden md:table-cell max-w-[280px]">
-                             <p className="text-[14px] text-slate-500 line-clamp-1 italic font-medium">"{contact.message}"</p>
-                          </td>
-                          <td className="px-8 py-4">
-                             <div className="text-[12px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-block">
-                                {new Date(contact.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                             </div>
                           </td>
                           <td className="px-8 py-4 text-right">
                             <div className="flex items-center justify-end gap-3">
@@ -385,6 +446,10 @@ const Contact = () => {
                       <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
                          <Clock size={16} className="text-brand-500 shrink-0" />
                          <span>{new Date(selectedContact.createdAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
+                         <Calendar size={16} className="text-brand-500 shrink-0" />
+                         <span>Received: {new Date(selectedContact.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                    </div>
                    

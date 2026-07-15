@@ -20,10 +20,13 @@ export const ADMIN_REPLY_ENQUIRY = "/admin/enquiries/reply";
 export const ADMIN_DELETE_ENQUIRY = (id) => `/admin/enquiries/${id}`;
 
 // 🖼️ Banners
-export const ADMIN_UPLOAD_BANNER = "/admin/upload-banner";
+// Make sure these are correctly defined
 export const ADMIN_GET_BANNERS = "/admin/banners";
+export const ADMIN_UPLOAD_BANNER = "/admin/upload-banner";
 export const ADMIN_UPDATE_BANNER = (id) => `/admin/banner/${id}`;
 export const ADMIN_DELETE_BANNER = (id) => `/admin/banner/${id}`;
+export const ADMIN_TOGGLE_BANNER = (id) => `/admin/banner/${id}/toggle`;
+export const ADMIN_TOGGLE_BANNER_CONTENT = (id) => `/admin/banner-op/${id}/toggle-visibility`;
 
 // 💰 Offers
 export const ADMIN_UPLOAD_OFFER = "/admin/offers";
@@ -45,50 +48,53 @@ export const ADMIN_DELETE_QUESTION = (id) => `/admin/faq/question/${id}`;
 export const ADMIN_UPDATE_ANSWER = (id) => `/admin/faq/answer/${id}`;
 export const ADMIN_DELETE_ANSWER = (id) => `/admin/faq/answer/${id}`;
 
-
-//register
+// 📋 Register
 export const ADMIN_GET_REGISTER = "/admin/register";
 export const ADMIN_MARK_REGISTER_READ = (id) => `/admin/register/${id}/read`;
 export const ADMIN_REPLY_REGISTER = "/admin/register/reply";
 export const ADMIN_DELETE_REGISTER = (id) => `/admin/register/${id}`;
 
-//live classes
+// 🎓 Live Classes
 export const ADMIN_GET_LIVE_CLASSES = "/admin/liveclass";
 export const ADMIN_POST_LIVE_CLASSES = "/admin/liveclass";
 export const ADMIN_GET_LIVE_CLASSES_ID = (id) => `/admin/liveclass/${id}`;
 export const ADMIN_UPDATE_LIVE_CLASSES = (id) => `/admin/liveclass/${id}`;
 export const ADMIN_DELETE_LIVE_CLASSES = (id) => `/admin/liveclass/${id}`;
 
-//Blog
+// 📝 Blogs
 export const ADMIN_GET_ALL_BLOGS = "/admin/blogs";
 export const ADMIN_POST_BLOGS = "/admin/blogs";
 export const ADMIN_GET_BLOGS_SLUG = (slug) => `/admin/blogs/${slug}`;
 export const ADMIN_UPDATE_BLOGS = (id) => `/admin/blogs/${id}`;
 export const ADMIN_DELETE_BLOGS = (id) => `/admin/blogs/${id}`;
+export const ADMIN_GENERATE_BLOG_CODE = "/admin/blog-codes/generate";
+export const ADMIN_GET_BLOG_CODES = "/admin/blog-codes";
+export const ADMIN_DELETE_BLOG_CODE = (id) => `/admin/blog-codes/${id}`;
 
-// Student Projects
+// 🎒 Student Projects
 export const ADMIN_GET_ALL_STUDENT_PROJECTS = "/admin/student-projects";
 export const ADMIN_POST_STUDENT_PROJECTS = "/admin/student-projects";
 export const ADMIN_GET_STUDENT_PROJECTS_SLUG = (slug) => `/admin/student-projects/${slug}`;
 export const ADMIN_UPDATE_STUDENT_PROJECTS = (id) => `/admin/student-projects/${id}`;
 export const ADMIN_DELETE_STUDENT_PROJECTS = (id) => `/admin/student-projects/${id}`;
+export const ADMIN_GENERATE_PROJECT_CODE = "/admin/project-codes/generate";
+export const ADMIN_GET_PROJECT_CODES = "/admin/project-codes";
+export const ADMIN_DELETE_PROJECT_CODE = (id) => `/admin/project-codes/${id}`;
 
-//courses
+// 📚 Courses
 export const ADMIN_POST_COURSES = "/admin/course";
 export const ADMIN_GET_ALL_COURSES = "/admin/course";
 export const ADMIN_GET_COURSE_SLUG = (slug) => `/admin/course/${slug}`;
 export const ADMIN_UPDATE_COURSE = (id) => `/admin/course/${id}`;
 export const ADMIN_DELETE_COURSE = (id) => `/admin/course/${id}`;
 
-
-// contact
+// 📞 Contact
 export const ADMIN_GET_ALL_CONTACTS = "/admin/contact";
 export const ADMIN_DELETE_CONTACTS = (id) => `/admin/contact/${id}`;
 export const ADMIN_MARK_CONTACT_READ = (id) => `/admin/contact/${id}/read`;
 export const ADMIN_REPLY_CONTACT = "/admin/contact/reply";
 
-
-//testimonial
+// 🌟 Testimonials
 export const ADMIN_POST_TESTIMONIALS = "/admin/testimonial";
 export const ADMIN_GET_ALL_TESIMONIALS = "/admin/testimonial";
 export const ADMIN_UPDATE_TESTIMONIALS = (id) => `/admin/testimonial/${id}`;
@@ -99,14 +105,23 @@ export const ADMIN_GET_GALLERY = "/admin/gallery";
 export const ADMIN_CREATE_GALLERY = "/admin/gallery";
 export const ADMIN_UPDATE_GALLERY = (id) => `/admin/gallery/${id}`;
 export const ADMIN_DELETE_GALLERY = (id) => `/admin/gallery/${id}`;
-export const ADMIN_ADD_GALLERY_IMAGES = (id) => `/admin/gallery/${id}/images`;
-export const ADMIN_DELETE_GALLERY_IMAGE = (id) => `/admin/gallery/${id}/image`;
+
+// Batches
+export const ADMIN_ADD_GALLERY_BATCH = (id) => `/admin/gallery/${id}/batches`;
+export const ADMIN_UPDATE_GALLERY_BATCH = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}`;
+export const ADMIN_DELETE_GALLERY_BATCH = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}`;
+
+// Batch Images
+export const ADMIN_ADD_BATCH_IMAGES = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}/images`;
+export const ADMIN_DELETE_BATCH_IMAGE = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}/image`;
+export const ADMIN_UPDATE_BATCH_IMAGE_HIGHLIGHTS = (id, batchId) => `/admin/gallery/${id}/batches/${batchId}/image/highlights`;
 
 // 📅 Gallery Events
 export const ADMIN_GET_ALL_GALLERY_EVENTS = "/admin/gallery-events";
 export const ADMIN_POST_GALLERY_EVENT = "/admin/gallery-events";
 export const ADMIN_PUT_GALLERY_EVENT = (id) => `/admin/gallery-events/${id}`;
 export const ADMIN_DELETE_GALLERY_EVENT = (id) => `/admin/gallery-events/${id}`;
+export const ADMIN_UPDATE_GALLERY_EVENT_IMAGE_HIGHLIGHTS = (id) => `/admin/gallery-events/${id}/image/highlights`;
 
 // 🎥 Videos
 export const ADMIN_GET_VIDEOS = "/admin/videos";
@@ -133,3 +148,19 @@ export const ADMIN_GET_WORKSHOPS = "/admin/workshops";
 export const ADMIN_POST_WORKSHOP = "/admin/workshops";
 export const ADMIN_UPDATE_WORKSHOP = (id) => `/admin/workshops/${id}`;
 export const ADMIN_DELETE_WORKSHOP = (id) => `/admin/workshops/${id}`;
+
+// 🖼️ Office Gallery — Batch
+export const ADMIN_GET_OFFICE_GALLERY = "/admin/office-gallery";
+export const ADMIN_CREATE_OFFICE_GALLERY_BATCH = "/admin/office-gallery";
+export const ADMIN_UPDATE_OFFICE_GALLERY_BATCH = (batchId) => `/admin/office-gallery/${batchId}`;
+export const ADMIN_DELETE_OFFICE_GALLERY_BATCH = (batchId) => `/admin/office-gallery/${batchId}`;
+
+// Office Gallery — Categories
+export const ADMIN_ADD_OFFICE_GALLERY_CATEGORY = (batchId) => `/admin/office-gallery/${batchId}/categories`;
+export const ADMIN_UPDATE_OFFICE_GALLERY_CATEGORY = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}`;
+export const ADMIN_DELETE_OFFICE_GALLERY_CATEGORY = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}`;
+
+// Office Gallery — Images
+export const ADMIN_ADD_OFFICE_CATEGORY_IMAGES = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/images`;
+export const ADMIN_DELETE_OFFICE_CATEGORY_IMAGE = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/image`;
+export const ADMIN_UPDATE_OFFICE_CATEGORY_IMAGE_HIGHLIGHTS = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/image/highlights`;

@@ -11,7 +11,7 @@ import {
   Scissors
 } from "lucide-react";
 import Cropper from 'react-easy-crop';
-import { GetRequest, PostRequest, DeleteRequest, PutRequest } from "../../apis/config";
+import { GetRequest, PostRequest, DeleteRequest, PutRequest } from "../../apis/api";
 import { 
   ADMIN_UPLOAD_OFFER, 
   ADMIN_DELETE_OFFER, 

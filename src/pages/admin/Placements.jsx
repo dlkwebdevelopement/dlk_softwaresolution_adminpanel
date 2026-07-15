@@ -16,7 +16,7 @@ import {
   GripVertical
 } from "lucide-react";
 import Cropper from 'react-easy-crop';
-import { GetRequest, PostRequest, DeleteRequest, PutRequest, PatchRequest } from "../../apis/config";
+import { GetRequest, PostRequest, DeleteRequest, PutRequest, PatchRequest } from "../../apis/api";
 import { 
   ADMIN_GET_PLACEMENTS,
   ADMIN_UPLOAD_PLACEMENT,

@@ -19,9 +19,11 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  Video as VideoCallIcon,
+  Star as StarIcon
 } from "lucide-react";
-import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/config";
+import { GetRequest, DeleteRequest, PostRequest, PatchRequest } from "../../apis/api";
 import {
   ADMIN_GET_ENQUIRIES,
   ADMIN_MARK_ENQUIRY_READ,
@@ -55,6 +57,8 @@ const Enquiries = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   // ✅ Navigation & Reply State
   const [view, setView] = useState("list"); // list, detail
@@ -63,6 +67,7 @@ const Enquiries = () => {
   
   // ✅ Filter & Pagination State
   const [filter, setFilter] = useState("all"); 
+  const [typeFilter, setTypeFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -100,12 +105,42 @@ const Enquiries = () => {
       await DeleteRequest(ADMIN_DELETE_ENQUIRY(deleteId));
       showToast("Purged successfully");
       setDeleteId(null);
+      setSelectedIds(prev => prev.filter(id => id !== deleteId));
       if (view === "detail") setView("list");
       fetchEnquiries();
     } catch (err) {
       showToast("Purge failed", "error");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Permanently purge ${selectedIds.length} selected records?`)) return;
+    try {
+      setIsBulkDeleting(true);
+      for (const id of selectedIds) {
+        await DeleteRequest(ADMIN_DELETE_ENQUIRY(id));
+      }
+      showToast(`${selectedIds.length} records purged`);
+      setSelectedIds([]);
+      fetchEnquiries();
+    } catch (err) {
+      showToast("Bulk purge failed", "error");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = (paginatedList) => {
+    if (selectedIds.length === paginatedList.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedList.map(item => item.id));
     }
   };
 
@@ -159,12 +194,16 @@ const Enquiries = () => {
 
   const filteredList = useMemo(() => {
     return list.filter(e => {
-      if (filter === "new") return !e.isRead;
-      if (filter === "viewed") return e.isRead && !e.isReply;
-      if (filter === "replied") return e.isReply;
-      return true;
+      const statusMatch = filter === "all" || 
+        (filter === "new" && !e.isRead) ||
+        (filter === "viewed" && e.isRead && !e.isReply) ||
+        (filter === "replied" && e.isReply);
+      
+      const typeMatch = typeFilter === "all" || e.inquiryType === typeFilter;
+      
+      return statusMatch && typeMatch;
     });
-  }, [list, filter]);
+  }, [list, filter, typeFilter]);
 
   // ✅ Pagination Logic
   const totalPages = Math.ceil(filteredList.length / itemsPerPage);
@@ -175,7 +214,7 @@ const Enquiries = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
+  }, [filter, typeFilter]);
 
   // ✅ Highlight-Aware Pagination
   useEffect(() => {
@@ -197,19 +236,53 @@ const Enquiries = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-black text-slate-900 mb-0.5">Course Enquiries</h1>
-              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-none">Management Terminal</p>
+              <div className="flex items-center gap-3">
+                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-none">Management Terminal</p>
+                {selectedIds.length > 0 && (
+                  <button 
+                    onClick={handleBulkDelete}
+                    disabled={isBulkDeleting}
+                    className="flex items-center gap-2 px-3 py-1 bg-red-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-200 disabled:opacity-50"
+                  >
+                    {isBulkDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    Delete {selectedIds.length} Selected
+                  </button>
+                )}
+              </div>
             </div>
             
-            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
-               {["all", "new", "viewed", "replied"].map((f) => (
-                 <button
-                   key={f}
-                   onClick={() => setFilter(f)}
-                   className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                 >
-                   {f}
-                 </button>
-               ))}
+            <div className="flex flex-wrap items-center gap-2">
+               {/* Type Filter */}
+               <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => setTypeFilter("all")}
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${typeFilter === "all" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  All
+                </button>
+                {["Online Courses", "Corporate Training", "Career Services", "Quick Enquiry", "Live Classes", "Offer", "Blog"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setTypeFilter(type)}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${typeFilter === type ? (type === 'Live Classes' ? 'bg-emerald-600 text-white shadow-sm' : type === 'Offer' ? 'bg-amber-600 text-white shadow-sm' : type === 'Blog' ? 'bg-blue-600 text-white shadow-sm' : 'bg-indigo-600 text-white shadow-sm') : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    {type === 'Live Classes' ? 'Live' : type === 'Offer' ? 'Offers' : type === 'Quick Enquiry' ? 'Quick' : type === 'Blog' ? 'Blog' : type.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-1.5 bg-slate-800 p-1 rounded-xl border border-slate-700 shadow-lg">
+                {["all", "new", "viewed", "replied"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -254,10 +327,19 @@ const Enquiries = () => {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50/50 border-b border-slate-100 font-black text-[10px] text-slate-400 uppercase tracking-widest">
-                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                          checked={paginatedList.length > 0 && selectedIds.length === paginatedList.length}
+                          onChange={() => toggleSelectAll(paginatedList)}
+                        />
+                      </th>
+                      <th className="px-6 py-4 hidden md:table-cell">Date</th>
                       <th className="px-6 py-4">Sender</th>
                       <th className="px-6 py-4">Course</th>
                       <th className="px-6 py-4">Origin</th>
+                      <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Action</th>
                     </tr>
                   </thead>
@@ -270,8 +352,54 @@ const Enquiries = () => {
                       paginatedList.map((enquiry) => (
                         <tr 
                           key={enquiry.id} 
-                          className={`hover:bg-slate-50 transition-all group ${!enquiry.isRead ? 'bg-amber-50/20' : ''} ${highlightId === enquiry.id ? 'record-highlight border-y border-brand-500' : ''}`}
+                          className={`hover:bg-slate-50 transition-all group ${selectedIds.includes(enquiry.id) ? 'bg-brand-50/30' : !enquiry.isRead ? 'bg-amber-50/20' : ''} ${highlightId === enquiry.id ? 'record-highlight border-y border-brand-500' : ''}`}
                         >
+                          <td className="px-6 py-3">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                              checked={selectedIds.includes(enquiry.id)}
+                              onChange={() => toggleSelect(enquiry.id)}
+                            />
+                          </td>
+                          <td className="px-6 py-3 hidden md:table-cell">
+                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-tight bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 inline-flex items-center gap-1.5">
+                              <Clock size={10} className="text-brand-400"/>
+                              {enquiry.createdAt ? new Date(enquiry.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3">
+                            <div>
+                              <div className="font-black text-slate-800 leading-tight mb-0.5 text-sm">{enquiry.name}</div>
+                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[150px]">
+                                {enquiry.email}
+                              </div>
+                            </div>
+                          </td>
+                            <td className="px-6 py-3">
+                             <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                   {enquiry.inquiryType === "Live Classes" ? <VideoCallIcon size={14} className="text-emerald-500"/> : enquiry.inquiryType === "Offer" ? <StarIcon size={14} className="text-amber-500"/> : <GraduationCap size={14} className="text-indigo-500"/>}
+                                   <span className="text-[13px] font-bold text-slate-700 truncate max-w-[200px]">{enquiry.course}</span>
+                                </div>
+                                {enquiry.inquiryType && enquiry.inquiryType !== "General" && (
+                                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md w-fit ${enquiry.inquiryType === 'Live Classes' ? 'text-emerald-500 bg-emerald-50' : enquiry.inquiryType === 'Offer' ? 'text-amber-500 bg-amber-50' : enquiry.inquiryType === 'Blog' ? 'text-blue-500 bg-blue-50' : 'text-indigo-500 bg-indigo-50'}`}>
+                                    {enquiry.inquiryType}
+                                  </span>
+                                )}
+                             </div>
+                          </td>
+                          <td className="px-6 py-3">
+                             <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500">
+                               <div className="flex items-center gap-1">
+                                 <MapPin size={10} className="text-slate-400"/> {enquiry.location}
+                               </div>
+                               <div className="text-slate-300 px-1 font-normal opacity-50">|</div>
+                               <div className="flex items-center gap-1">
+                                 <Clock size={10} className="text-slate-400"/> {enquiry.timeslot}
+                               </div>
+                             </div>
+                          </td>
                           <td className="px-6 py-3">
                              {enquiry.isReply ? (
                                <span className="inline-flex items-center gap-1.5 text-blue-600 text-[9px] font-black uppercase tracking-tighter">
@@ -286,31 +414,6 @@ const Enquiries = () => {
                                  New Inbound
                                </span>
                              )}
-                          </td>
-                          <td className="px-6 py-3">
-                            <div>
-                              <div className="font-black text-slate-800 leading-tight mb-0.5 text-sm">{enquiry.name}</div>
-                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight truncate max-w-[150px]">
-                                {enquiry.email}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-3">
-                             <div className="flex items-center gap-2">
-                                <GraduationCap size={14} className="text-indigo-500"/>
-                                <span className="text-[13px] font-bold text-slate-700 truncate max-w-[180px]">{enquiry.course}</span>
-                             </div>
-                          </td>
-                          <td className="px-6 py-3">
-                             <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500">
-                               <div className="flex items-center gap-1">
-                                 <MapPin size={10} className="text-slate-400"/> {enquiry.location}
-                               </div>
-                               <div className="text-slate-300 px-1 font-normal opacity-50">|</div>
-                               <div className="flex items-center gap-1">
-                                 <Clock size={10} className="text-slate-400"/> {enquiry.timeslot}
-                               </div>
-                             </div>
                           </td>
                           <td className="px-6 py-3 text-right">
                             <div className="flex items-center justify-end gap-2">
@@ -383,20 +486,26 @@ const Enquiries = () => {
                    <h2 className="text-xl font-black text-slate-900 mb-1 leading-tight">{selectedEnquiry.name}</h2>
                    <p className="text-[10px] font-bold text-brand-600 uppercase tracking-widest mb-6">Inquiry Candidate</p>
                    
-                   <div className="space-y-3 text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-                         <Mail size={14} className="text-brand-500 shrink-0" />
-                         <span className="truncate">{selectedEnquiry.email}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-                         <Phone size={14} className="text-brand-500 shrink-0" />
-                         <span>{selectedEnquiry.mobile}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-                         <MapPin size={14} className="text-brand-500 shrink-0" />
-                         <span>{selectedEnquiry.location}</span>
-                      </div>
-                   </div>
+                    <div className="space-y-3 text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6">
+                       <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                          <Mail size={14} className="text-brand-500 shrink-0" />
+                          <span className="truncate">{selectedEnquiry.email}</span>
+                       </div>
+                       <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                          <Phone size={14} className="text-brand-500 shrink-0" />
+                          <span>{selectedEnquiry.mobile}</span>
+                       </div>
+                       <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                          <MapPin size={14} className="text-brand-500 shrink-0" />
+                          <span>{selectedEnquiry.location}</span>
+                       </div>
+                       {selectedEnquiry.message && (
+                        <div className="flex flex-col gap-1 mt-2 pt-2 border-t border-slate-200">
+                          <span className="text-[10px] uppercase font-black text-slate-400">Message</span>
+                          <span className="text-xs text-slate-700 italic">"{selectedEnquiry.message}"</span>
+                        </div>
+                       )}
+                    </div>
                    
                    <button 
                      onClick={() => setDeleteId(selectedEnquiry.id)}
@@ -409,13 +518,24 @@ const Enquiries = () => {
                 <div className="bg-slate-900 rounded-[24px] p-6 text-white shadow-xl shadow-slate-100">
                    <h3 className="text-[9px] font-black uppercase tracking-widest text-brand-400 mb-4 leading-none font-sans">Enquired Course</h3>
                    <div className="space-y-4">
-                      <div className="flex items-start gap-4">
-                         <GraduationCap size={22} className="text-brand-500 shrink-0"/>
-                         <div>
-                            <div className="font-black text-lg leading-tight mb-1">{selectedEnquiry.course}</div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Preferred: {selectedEnquiry.timeslot}</div>
-                         </div>
-                      </div>
+                       <div className="flex items-start gap-4">
+                          <GraduationCap size={22} className="text-brand-500 shrink-0"/>
+                          <div>
+                             <div className="font-black text-lg leading-tight mb-1">{selectedEnquiry.course}</div>
+                             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mb-2">Preferred: {selectedEnquiry.timeslot}</div>
+                             {selectedEnquiry.inquiryType && (
+                               <span className="inline-block px-3 py-1 rounded-lg bg-brand-500 text-white text-[10px] font-black uppercase tracking-widest">
+                                 {selectedEnquiry.inquiryType}
+                               </span>
+                             )}
+                             {selectedEnquiry.createdAt && (
+                               <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                                 <Clock size={11} className="text-brand-400"/>
+                                 Submitted: {new Date(selectedEnquiry.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                               </div>
+                             )}
+                          </div>
+                       </div>
                    </div>
                 </div>
              </div>

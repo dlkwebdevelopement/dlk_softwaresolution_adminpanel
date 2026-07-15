@@ -11,7 +11,7 @@ import {
   Plus,
   ArrowUpRight
 } from "lucide-react";
-import { GetRequest, PostRequest, DeleteRequest } from "../../apis/config";
+import { GetRequest, PostRequest, DeleteRequest } from "../../apis/api";
 import { ADMIN_UPLOAD_COMPANY, ADMIN_DELETE_COMPANY, ADMIN_GET_COMPANIES } from "../../apis/endpoints";
 
 export default function Company() {

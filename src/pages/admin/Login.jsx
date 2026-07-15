@@ -7,7 +7,7 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
-import { PostRequest } from "../../apis/config";
+import { PostRequest } from "../../apis/api";
 import { ADMIN_LOGIN } from "../../apis/endpoints";
 import { useNavigate } from "react-router-dom";
 
@@ -128,4 +128,4 @@ export default function Login() {
       </div>
     </div>
   );
-}
+}
