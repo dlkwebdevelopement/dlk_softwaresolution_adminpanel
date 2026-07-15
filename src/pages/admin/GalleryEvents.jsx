@@ -72,7 +72,11 @@ export default function GalleryEvents() {
   const fetchCategories = async () => {
     try {
       const res = await GetRequest(ADMIN_GET_GALLERY);
-      setCategories(res || []);
+      if (res && res.success) {
+        setCategories(res.data || []);
+      } else {
+        setCategories(Array.isArray(res) ? res : []);
+      }
     } catch (err) {
       console.error("Fetch Categories Error:", err);
     }
