@@ -213,7 +213,7 @@ export default function Banners() {
 
   const handleSubmit = async () => {
     if (!editingId && !file) return alert("Please select and crop a banner image!");
-    if (!title || !highlight || !subtitle) return alert("Please fill in all required fields!");
+    if (!editingId && !file) return alert("Please select and crop a banner image!");
 
     const fd = new FormData();
     if (file) fd.append("photo", file);
@@ -223,7 +223,8 @@ export default function Banners() {
     fd.append("tagline", tagline);
     fd.append("description", description);
     fd.append("button", buttonText);
-    fd.append("isContentActive", isContentActive);
+    const hasText = !!(title || highlight || subtitle || description || tagline || buttonText);
+    fd.append("isContentActive", hasText);
 
     try {
       if (editingId) {
@@ -422,7 +423,7 @@ export default function Banners() {
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Title <span className="text-red-500">*</span>
+                      Title <span className="text-gray-400 font-normal">(Optional)</span>
                     </label>
                     <input
                       type="text"
@@ -435,7 +436,7 @@ export default function Banners() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Highlight Text <span className="text-red-500">*</span>
+                      Highlight Text <span className="text-gray-400 font-normal">(Optional)</span>
                     </label>
                     <input
                       type="text"
@@ -448,7 +449,7 @@ export default function Banners() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Subtitle <span className="text-red-500">*</span>
+                      Subtitle <span className="text-gray-400 font-normal">(Optional)</span>
                     </label>
                     <input
                       type="text"
@@ -505,25 +506,7 @@ export default function Banners() {
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Banner Image</h3>
 
-                {/* Content Visibility Toggle */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700">Content Visibility</p>
-                      <p className="text-xs text-gray-500">Show/Hide text overlay</p>
-                    </div>
-                    <button
-                      onClick={() => setIsContentActive(!isContentActive)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isContentActive ? 'bg-blue-500' : 'bg-gray-300'
-                        }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isContentActive ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                      />
-                    </button>
-                  </div>
-                </div>
+
 
                 {/* Image Upload Area */}
                 <div className={`relative rounded-xl border-2 border-dashed transition-all overflow-hidden ${preview ? 'border-blue-300 bg-blue-50' : 'border-gray-300 bg-gray-50'
@@ -550,7 +533,7 @@ export default function Banners() {
                         <UploadCloud className="w-8 h-8 text-blue-600" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">Click to upload</p>
-                      <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+                      <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB (Recommended size: 1920x1080)</p>
                     </label>
                   )}
                   <input
@@ -592,7 +575,7 @@ export default function Banners() {
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Crop Banner Image</h3>
                   <p className="text-sm text-gray-500 mt-1">
-                    Drag to adjust crop area | Use slider to zoom | Recommended ratio: 4:3
+                    Drag to adjust crop area | Use slider to zoom | Recommended ratio: 1920x1080
                   </p>
                 </div>
                 <button
@@ -615,7 +598,7 @@ export default function Banners() {
                   image={imageToCrop}
                   crop={crop}
                   zoom={zoom}
-                  aspect={4 / 3}
+                  aspect={1920 / 1080}
                   onCropChange={setCrop}
                   onCropComplete={onCropComplete}
                   onZoomChange={setZoom}
@@ -712,11 +695,11 @@ export default function Banners() {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto">
-                <div className="relative w-full aspect-[21/9] bg-gray-100">
+                <div className="relative w-full aspect-[16/9] bg-gray-100">
                   <img
                     src={fullViewData.photoUrl}
                     alt={fullViewData.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                   {fullViewData.isContentActive !== false && (
                     <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex items-center px-12">
