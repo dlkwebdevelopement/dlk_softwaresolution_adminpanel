@@ -80,7 +80,21 @@ export default function Internships() {
   // Form Fields
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Web Development");
-  const [duration, setDuration] = useState("3 Months");
+  const [durationValue, setDurationValue] = useState("15");
+  const [durationUnit, setDurationUnit] = useState("Days");
+
+  const parseDuration = (raw) => {
+    if (!raw) return { value: "15", unit: "Days" };
+    const str = String(raw).trim();
+    const match = str.match(/^(\d+)\s*(month|months|day|days)?/i);
+    if (match) {
+      const val = match[1];
+      const unitRaw = (match[2] || "").toLowerCase();
+      const unit = unitRaw.startsWith("month") ? "Months" : "Days";
+      return { value: val, unit };
+    }
+    return { value: str.replace(/\D/g, "") || "15", unit: "Days" };
+  };
   const [mode, setMode] = useState("Online / Offline Classroom");
   const [skillsText, setSkillsText] = useState("");
   const [description, setDescription] = useState("");
@@ -146,7 +160,8 @@ export default function Internships() {
   const resetForm = () => {
     setTitle("");
     setCategory(domainOptions[0] || "Web Development");
-    setDuration("3 Months");
+    setDurationValue("15");
+    setDurationUnit("Days");
     setMode("Online / Offline Classroom");
     setSkillsText("");
     setDescription("");
@@ -165,7 +180,9 @@ export default function Internships() {
     setIsEditing(true);
     setTitle(item.title || "");
     setCategory(item.category || domainOptions[0] || "Web Development");
-    setDuration(item.duration || "3 Months");
+    const { value: parsedVal, unit: parsedUnit } = parseDuration(item.duration);
+    setDurationValue(parsedVal);
+    setDurationUnit(parsedUnit);
     setMode(item.mode || "Online / Offline Classroom");
     setSkillsText(Array.isArray(item.skills) ? item.skills.join(", ") : "");
     setDescription(item.description || "");
@@ -191,7 +208,10 @@ export default function Internships() {
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("category", category.trim());
-      formData.append("duration", duration);
+      const finalDuration = durationValue.trim()
+        ? `${durationValue.trim()} ${durationUnit}`
+        : `15 ${durationUnit}`;
+      formData.append("duration", finalDuration);
       formData.append("mode", mode);
       formData.append("description", description.trim());
       formData.append("isActive", isActive);
@@ -365,20 +385,28 @@ export default function Internships() {
                   </select>
                 </div>
 
-                {/* Duration */}
+                {/* Duration (Number Input + Days / Months Select) */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">Duration</label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
-                  >
-                    {DURATION_OPTIONS.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-sm font-semibold text-slate-700">Duration *</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={durationValue}
+                      onChange={(e) => setDurationValue(e.target.value)}
+                      placeholder="e.g. 15"
+                      className="flex-1 rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white text-sm font-medium"
+                    />
+                    <select
+                      value={durationUnit}
+                      onChange={(e) => setDurationUnit(e.target.value)}
+                      className="w-32 rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white text-sm font-bold"
+                    >
+                      <option value="Days">Days</option>
+                      <option value="Months">Months</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Skills Covered */}
