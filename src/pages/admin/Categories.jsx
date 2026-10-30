@@ -170,13 +170,14 @@ export default function Categories() {
 
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 mb-1.5 block tracking-widest">Scope</label>
-                <textarea
-                  placeholder="Operational scope..."
+                <select
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-sm font-medium resize-none shadow-inner"
-                />
+                  className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-sm font-bold bg-white"
+                >
+                  <option value="course">Course Management</option>
+                  <option value="internship">Internship Management</option>
+                </select>
               </div>
 
               <div>
@@ -296,15 +297,24 @@ export default function Categories() {
                         </td>
                         <td className="px-6 py-4">
                           {editingId === c.id ? (
-                            <textarea
+                            <select
                               value={editDescription}
                               onChange={(e) => setEditDescription(e.target.value)}
-                              className="w-full rounded-lg border-slate-200 border px-3 py-1.5 text-xs text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none resize-none font-medium h-12"
-                            />
+                              className="rounded-lg border-slate-200 border px-3 py-1.5 text-xs text-slate-900 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none font-bold bg-white"
+                            >
+                              <option value="course">Course</option>
+                              <option value="internship">Internship</option>
+                            </select>
                           ) : (
-                            <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-sm line-clamp-2" title={c.description}>
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 capitalize border border-slate-200">{c.scope || c.description || "course"}</span>
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold capitalize border ${
+                                (c.scope || c.description) === "internship"
+                                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              }`}>
+                                {(c.scope || c.description) === "internship" ? "Internship" : "Course"}
+                              </span>
+                            </div>
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">

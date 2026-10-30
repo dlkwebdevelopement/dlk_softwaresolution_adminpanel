@@ -79,8 +79,9 @@ export default function CourseDetails() {
   // ================= FETCH =================
   const fetchCategories = async () => {
     try {
-      const res = await GetRequest(ADMIN_GET_CATEGORIES);
-      setCategories(res || []);
+      const res = await GetRequest(`${ADMIN_GET_CATEGORIES}?scope=course`);
+      const courseCats = (res || []).filter(c => !c.scope || c.scope === "course");
+      setCategories(courseCats);
     } catch (err) {
       setCategories([]);
     }

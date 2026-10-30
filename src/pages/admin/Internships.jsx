@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   GraduationCap,
   Plus,
@@ -20,6 +20,7 @@ import {
   Eye,
 } from "lucide-react";
 import {
+  ADMIN_GET_CATEGORIES,
   ADMIN_GET_INTERNSHIPS,
   ADMIN_POST_INTERNSHIP,
   ADMIN_UPDATE_INTERNSHIP,
@@ -63,6 +64,26 @@ export default function Internships() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [internshipCategories, setInternshipCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchInternshipCats = async () => {
+      try {
+        const res = await GetRequest(`${ADMIN_GET_CATEGORIES}?scope=internship`);
+        if (Array.isArray(res)) {
+          setInternshipCategories(res);
+        }
+      } catch (err) {
+        console.error("Failed to load internship categories:", err);
+      }
+    };
+    fetchInternshipCats();
+  }, []);
+
+  const domainOptions = useMemo(() => {
+    const fromTerminal = internshipCategories.map((c) => c.categoryName);
+    return Array.from(new Set([...fromTerminal, ...DOMAIN_OPTIONS]));
+  }, [internshipCategories]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -338,7 +359,7 @@ export default function Internships() {
 
         {/* Domain Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
-          {["All", ...DOMAIN_OPTIONS].map((dom) => (
+          {["All", ...domainOptions].map((dom) => (
             <button
               key={dom}
               onClick={() => setSelectedCategory(dom)}
@@ -571,7 +592,7 @@ export default function Internships() {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                   >
-                    {DOMAIN_OPTIONS.map((d) => (
+                    {domainOptions.map((d) => (
                       <option key={d} value={d}>
                         {d}
                       </option>
