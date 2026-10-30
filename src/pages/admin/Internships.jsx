@@ -2,22 +2,23 @@ import React, { useEffect, useState, useMemo } from "react";
 import {
   GraduationCap,
   Plus,
+  PlusCircle,
   Search,
   FileText,
   Upload,
-  Download,
-  Trash2,
-  Edit,
+  FileUp,
   ExternalLink,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Laptop,
-  Layers,
+  Trash2,
+  Edit2,
+  Save,
   X,
   Loader2,
-  Check,
-  Eye,
+  Filter,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import {
   ADMIN_GET_CATEGORIES,
@@ -34,7 +35,7 @@ import {
   getImgUrl,
 } from "../../apis/api";
 
-const DOMAIN_OPTIONS = [
+const DEFAULT_DOMAIN_OPTIONS = [
   "Web Development",
   "AI & Machine Learning",
   "Data Analytics",
@@ -66,27 +67,12 @@ export default function Internships() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [internshipCategories, setInternshipCategories] = useState([]);
 
-  useEffect(() => {
-    const fetchInternshipCats = async () => {
-      try {
-        const res = await GetRequest(`${ADMIN_GET_CATEGORIES}?scope=internship`);
-        if (Array.isArray(res)) {
-          setInternshipCategories(res);
-        }
-      } catch (err) {
-        console.error("Failed to load internship categories:", err);
-      }
-    };
-    fetchInternshipCats();
-  }, []);
+  // Pagination
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const domainOptions = useMemo(() => {
-    const fromTerminal = internshipCategories.map((c) => c.categoryName);
-    return Array.from(new Set([...fromTerminal, ...DOMAIN_OPTIONS]));
-  }, [internshipCategories]);
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Form & View State
+  const [showForm, setShowForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -107,11 +93,6 @@ export default function Internships() {
   const [imageFile, setImageFile] = useState(null);
   const [currentImageUrl, setCurrentImageUrl] = useState("");
 
-  // Delete Confirmation State
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
   // Toast State
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
@@ -122,6 +103,19 @@ export default function Internships() {
     }, 4000);
   };
 
+  // Fetch internship categories from Category Management Terminal (scope === "internship")
+  const fetchInternshipCats = async () => {
+    try {
+      const res = await GetRequest(`${ADMIN_GET_CATEGORIES}?scope=internship`);
+      if (Array.isArray(res)) {
+        setInternshipCategories(res);
+      }
+    } catch (err) {
+      console.error("Failed to load internship categories:", err);
+    }
+  };
+
+  // Fetch all internships
   const fetchInternships = async () => {
     try {
       setLoading(true);
@@ -140,12 +134,18 @@ export default function Internships() {
   };
 
   useEffect(() => {
+    fetchInternshipCats();
     fetchInternships();
   }, []);
 
+  const domainOptions = useMemo(() => {
+    const fromTerminal = internshipCategories.map((c) => c.categoryName);
+    return Array.from(new Set([...fromTerminal, ...DEFAULT_DOMAIN_OPTIONS]));
+  }, [internshipCategories]);
+
   const resetForm = () => {
     setTitle("");
-    setCategory("Web Development");
+    setCategory(domainOptions[0] || "Web Development");
     setDuration("3 Months");
     setMode("Online / Offline Classroom");
     setSkillsText("");
@@ -160,16 +160,11 @@ export default function Internships() {
     setCurrentId(null);
   };
 
-  const openAddModal = () => {
-    resetForm();
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (item) => {
+  const handleEdit = (item) => {
     setCurrentId(item._id || item.id);
     setIsEditing(true);
     setTitle(item.title || "");
-    setCategory(item.category || "Web Development");
+    setCategory(item.category || domainOptions[0] || "Web Development");
     setDuration(item.duration || "3 Months");
     setMode(item.mode || "Online / Offline Classroom");
     setSkillsText(Array.isArray(item.skills) ? item.skills.join(", ") : "");
@@ -180,13 +175,14 @@ export default function Internships() {
     setCurrentImageUrl(item.image_url || item.image || "");
     setSyllabusFile(null);
     setImageFile(null);
-    setIsModalOpen(true);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim() || !category.trim()) {
-      showToast("Please provide Title and Category", "error");
+      showToast("Please provide Title and Domain / Category", "error");
       return;
     }
 
@@ -216,63 +212,60 @@ export default function Internships() {
 
       if (isEditing) {
         await PutRequest(ADMIN_UPDATE_INTERNSHIP(currentId), formData);
-        showToast("Internship course updated successfully");
+        showToast("Internship track updated successfully");
       } else {
         await PostRequest(ADMIN_POST_INTERNSHIP, formData);
-        showToast("Internship course added successfully");
+        showToast("Internship track created successfully");
       }
 
-      setIsModalOpen(false);
+      setShowForm(false);
       resetForm();
       fetchInternships();
     } catch (err) {
       console.error("Save Internship error:", err);
-      showToast("Failed to save internship course", "error");
+      showToast("Failed to save internship track", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this internship program?")) return;
     try {
-      setIsDeleting(true);
-      const id = itemToDelete._id || itemToDelete.id;
       await DeleteRequest(ADMIN_DELETE_INTERNSHIP(id));
-      showToast("Internship course deleted successfully");
-      setDeleteModalOpen(false);
-      setItemToDelete(null);
+      showToast("Internship program deleted successfully");
       fetchInternships();
     } catch (err) {
       console.error("Delete error:", err);
-      showToast("Failed to delete internship course", "error");
-    } finally {
-      setIsDeleting(false);
+      showToast("Failed to delete internship program", "error");
     }
   };
 
   // Filtered internships
-  const filteredList = internships.filter((item) => {
-    const matchesCategory =
-      selectedCategory === "All" ||
-      item.category?.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch =
-      !search.trim() ||
-      item.title?.toLowerCase().includes(search.toLowerCase()) ||
-      item.category?.toLowerCase().includes(search.toLowerCase()) ||
-      (Array.isArray(item.skills) &&
-        item.skills.some((s) => s.toLowerCase().includes(search.toLowerCase())));
-    return matchesCategory && matchesSearch;
-  });
+  const filteredList = useMemo(() => {
+    return internships.filter((item) => {
+      const matchesCategory =
+        selectedCategory === "All" ||
+        item.category?.toLowerCase() === selectedCategory.toLowerCase();
+      const matchesSearch =
+        !search.trim() ||
+        item.title?.toLowerCase().includes(search.toLowerCase()) ||
+        item.category?.toLowerCase().includes(search.toLowerCase()) ||
+        (Array.isArray(item.skills) &&
+          item.skills.some((s) => s.toLowerCase().includes(search.toLowerCase())));
+      return matchesCategory && matchesSearch;
+    });
+  }, [internships, selectedCategory, search]);
 
-  const totalCount = internships.length;
-  const activeCount = internships.filter((i) => i.isActive).length;
-  const syllabusCount = internships.filter(
-    (i) => i.syllabus_pdf || i.syllabus_pdf_url
-  ).length;
+  const totalFiltered = filteredList.length;
+  const totalPages = Math.ceil(totalFiltered / itemsPerPage) || 1;
+  const paginatedList = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    return filteredList.slice(start, start + itemsPerPage);
+  }, [filteredList, page]);
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="max-w-[1400px] mx-auto animate-fade-in py-2">
       {/* Toast Alert */}
       {toast.show && (
         <div
@@ -285,349 +278,84 @@ export default function Internships() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <GraduationCap size={26} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-              Internship Management
-            </h1>
-            <p className="text-sm text-slate-500">
-              Manage student internship tracks, upload syllabus PDFs, and review program details
-            </p>
-          </div>
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Internship Management</h1>
+          <p className="text-slate-500">Create, edit and manage your internship programs, domains and tracks.</p>
         </div>
-
         <button
-          onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => {
+            if (showForm) {
+              resetForm();
+              setShowForm(false);
+            } else {
+              resetForm();
+              setShowForm(true);
+            }
+          }}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-lg ${
+            showForm
+              ? "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-slate-100"
+              : "bg-brand-600 text-white hover:bg-brand-700 shadow-brand-100"
+          }`}
         >
-          <Plus size={18} />
-          <span>Add Internship Course</span>
+          {showForm ? <X size={20} /> : <PlusCircle size={20} />}
+          {showForm ? "Cancel & Close" : "Add New Internship"}
         </button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Total Internship Programs</p>
-            <h3 className="text-2xl font-bold text-slate-800 mt-1">{totalCount}</h3>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <Layers size={22} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Active Programs</p>
-            <h3 className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</h3>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <CheckCircle2 size={22} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Syllabus PDFs Attached</p>
-            <h3 className="text-2xl font-bold text-indigo-600 mt-1">{syllabusCount}</h3>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <FileText size={22} />
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filters Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Search Input */}
-        <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search by title, domain, or skills..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-          />
-        </div>
-
-        {/* Domain Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
-          {["All", ...domainOptions].map((dom) => (
-            <button
-              key={dom}
-              onClick={() => setSelectedCategory(dom)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                selectedCategory === dom
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-              }`}
-            >
-              {dom}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Internships List Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="animate-spin text-emerald-600" size={32} />
-            <p className="text-sm font-medium">Loading internship courses...</p>
-          </div>
-        ) : filteredList.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">
-            <GraduationCap className="mx-auto mb-3 text-slate-300" size={44} />
-            <p className="text-base font-semibold text-slate-700">No internship courses found</p>
-            <p className="text-xs text-slate-500 mt-1">
-              {search || selectedCategory !== "All"
-                ? "Try adjusting your search query or filters"
-                : "Click 'Add Internship Course' to create your first program"}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-600 text-xs font-semibold uppercase tracking-wider">
-                  <th className="py-4 px-6">Program & Domain</th>
-                  <th className="py-4 px-4">Duration / Mode</th>
-                  <th className="py-4 px-4">Skills Covered</th>
-                  <th className="py-4 px-4">Syllabus PDF</th>
-                  <th className="py-4 px-4">Status</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {filteredList.map((item) => {
-                  const pdfUrl = item.syllabus_pdf_url || item.syllabus_pdf;
-                  return (
-                    <tr key={item._id || item.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Title & Domain */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          {item.image_url || item.image ? (
-                            <img
-                              src={getImgUrl(item.image_url || item.image)}
-                              alt={item.title}
-                              className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                              <Laptop size={22} />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-semibold text-slate-800 line-clamp-1">{item.title}</p>
-                            <span className="inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-100">
-                              {item.category}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Duration / Mode */}
-                      <td className="py-4 px-4">
-                        <div className="flex flex-col gap-1 text-xs text-slate-600">
-                          <span className="flex items-center gap-1 font-medium">
-                            <Clock size={13} className="text-slate-400" />
-                            {item.duration || "3 Months"}
-                          </span>
-                          <span className="text-slate-500 line-clamp-1">{item.mode || "Online/Offline"}</span>
-                        </div>
-                      </td>
-
-                      {/* Skills */}
-                      <td className="py-4 px-4 max-w-xs">
-                        <div className="flex flex-wrap gap-1">
-                          {Array.isArray(item.skills) && item.skills.length > 0 ? (
-                            item.skills.slice(0, 3).map((skill, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium"
-                              >
-                                {skill}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-slate-400">General</span>
-                          )}
-                          {item.skills?.length > 3 && (
-                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
-                              +{item.skills.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Syllabus PDF */}
-                      <td className="py-4 px-4">
-                        {pdfUrl ? (
-                          <a
-                            href={getImgUrl(pdfUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200 transition-colors"
-                          >
-                            <FileText size={14} />
-                            <span>Download PDF</span>
-                            <ExternalLink size={12} className="opacity-70" />
-                          </a>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md font-medium">
-                            <AlertCircle size={13} />
-                            No PDF attached
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            item.isActive
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-slate-100 text-slate-500"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              item.isActive ? "bg-emerald-500" : "bg-slate-400"
-                            }`}
-                          />
-                          {item.isActive ? "Active" : "Draft"}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEditModal(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                            title="Edit Internship"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setItemToDelete(item);
-                              setDeleteModalOpen(true);
-                            }}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            title="Delete Internship"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* ADD / EDIT MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-100">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <GraduationCap size={22} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800">
-                    {isEditing ? "Edit Internship Course" : "Add New Internship Course"}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Fill in course details and attach the syllabus document
-                  </p>
-                </div>
+      {/* FORM SECTION (Matches Course Management Form Card) */}
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-10 overflow-hidden animate-slide-up">
+          <div className="p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+              <div className="p-2 bg-brand-50 rounded-lg">
+                <BookOpen className="w-6 h-6 text-brand-600" />
               </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <X size={18} />
-              </button>
+              <h2 className="text-xl font-bold text-slate-800">
+                {isEditing ? "Edit Internship Track Details" : "Create New Internship Track"}
+              </h2>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {/* Course Title */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Internship Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Full Stack Web Development Internship (MERN)"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
-
-              {/* Category & Duration */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Domain / Category *
-                  </label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Domain / Category */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">Domain / Category *</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
                   >
-                    {domainOptions.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
+                    {domainOptions.map((dom) => (
+                      <option key={dom} value={dom}>
+                        {dom}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Duration
-                  </label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                  >
-                    {DURATION_OPTIONS.map((dur) => (
-                      <option key={dur} value={dur}>
-                        {dur}
-                      </option>
-                    ))}
-                  </select>
+                {/* Internship Title */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">Internship Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Full Stack Web Development Internship (MERN)"
+                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+                  />
                 </div>
-              </div>
 
-              {/* Mode & Order */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Delivery Mode
-                  </label>
+                {/* Learning Mode */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">Learning Mode</label>
                   <select
                     value={mode}
                     onChange={(e) => setMode(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
                   >
                     {MODE_OPTIONS.map((m) => (
                       <option key={m} value={m}>
@@ -637,139 +365,138 @@ export default function Internships() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Display Priority (Order)
+                {/* Duration */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">Duration</label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
+                  >
+                    {DURATION_OPTIONS.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Skills Covered */}
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Skills Covered <span className="text-xs font-normal text-slate-400">(comma separated)</span>
                   </label>
                   <input
-                    type="number"
-                    min="0"
-                    value={orderIndex}
-                    onChange={(e) => setOrderIndex(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                    type="text"
+                    value={skillsText}
+                    onChange={(e) => setSkillsText(e.target.value)}
+                    placeholder="e.g. React.js, Node.js, Express, MongoDB, Tailwind CSS, REST APIs"
+                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white"
                   />
                 </div>
-              </div>
 
-              {/* Skills (Comma Separated) */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Key Skills (Comma Separated)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. React.js, Node.js, Express, MongoDB, Redux, REST APIs"
-                  value={skillsText}
-                  onChange={(e) => setSkillsText(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
+                {/* Program Description */}
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-700">Program Overview / Description</label>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Provide a comprehensive summary of real-time project work and deliverables..."
+                    className="w-full rounded-xl border-slate-200 border px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-slate-50/50 hover:bg-white resize-none"
+                  />
+                </div>
 
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Course Overview / Description
-                </label>
-                <textarea
-                  rows="3"
-                  placeholder="Explain what the student will learn and capstones they will build..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-              </div>
+                {/* Syllabus PDF Upload */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">Syllabus PDF Document</label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition-all text-sm font-medium text-slate-700 flex-1 truncate">
+                      <FileUp className="w-5 h-5 text-brand-600 shrink-0" />
+                      <span className="truncate">
+                        {syllabusFile ? syllabusFile.name : (currentSyllabusUrl ? "Change PDF" : "Choose Syllabus PDF")}
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => setSyllabusFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                    {currentSyllabusUrl && (
+                      <a
+                        href={getImgUrl(currentSyllabusUrl)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-600 transition-all"
+                        title="View Current PDF"
+                      >
+                        <ExternalLink size={18} />
+                      </a>
+                    )}
+                  </div>
+                </div>
 
-              {/* Syllabus PDF Upload */}
-              <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-                <label className="block text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">
-                  Upload Syllabus PDF
-                </label>
-                <p className="text-xs text-slate-500 mb-2.5">
-                  Upload the official course syllabus document (.pdf format)
-                </p>
+                {/* Thumbnail / Track Image Upload */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">Track Cover Image</label>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition-all text-sm font-medium text-slate-700 flex-1 truncate">
+                      <Upload className="w-5 h-5 text-brand-600 shrink-0" />
+                      <span className="truncate">
+                        {imageFile ? imageFile.name : (currentImageUrl ? "Change Image" : "Choose Image")}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                    </label>
+                    {currentImageUrl && (
+                      <img
+                        src={getImgUrl(currentImageUrl)}
+                        alt="cover"
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-sm"
+                      />
+                    )}
+                  </div>
+                </div>
 
-                <div className="flex items-center gap-3">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-emerald-300 hover:border-emerald-500 rounded-xl text-xs font-semibold text-emerald-700 shadow-sm transition-all hover:bg-emerald-50">
-                    <Upload size={14} />
-                    <span>Choose PDF</span>
+                {/* Status Toggle & Order Index */}
+                <div className="flex items-center gap-6 md:col-span-2 pt-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
                     <input
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      onChange={(e) => setSyllabusFile(e.target.files[0])}
-                      className="hidden"
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={(e) => setIsActive(e.target.checked)}
+                      className="w-5 h-5 rounded-lg border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                     />
+                    <span className="text-sm font-bold text-slate-800">Publish as Active Program</span>
                   </label>
-
-                  {syllabusFile ? (
-                    <span className="text-xs text-emerald-700 font-medium truncate max-w-xs flex items-center gap-1">
-                      <Check size={14} /> {syllabusFile.name}
-                    </span>
-                  ) : currentSyllabusUrl ? (
-                    <span className="text-xs text-slate-600 truncate max-w-xs flex items-center gap-1">
-                      <FileText size={14} className="text-emerald-600" /> Existing PDF attached
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-400">No PDF file chosen</span>
-                  )}
                 </div>
               </div>
 
-              {/* Thumbnail Image Upload */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Cover Image (Optional)
-                </label>
-                <div className="flex items-center gap-3">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-medium text-slate-700 transition-colors">
-                    <Upload size={14} />
-                    <span>Choose Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setImageFile(e.target.files[0])}
-                      className="hidden"
-                    />
-                  </label>
-                  {imageFile ? (
-                    <span className="text-xs text-slate-600 truncate max-w-xs">{imageFile.name}</span>
-                  ) : currentImageUrl ? (
-                    <span className="text-xs text-slate-500 truncate max-w-xs">Existing image attached</span>
-                  ) : (
-                    <span className="text-xs text-slate-400">Default course image will be used</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Active Toggle */}
-              <div className="flex items-center gap-2.5 pt-2">
-                <input
-                  type="checkbox"
-                  id="isActiveToggle"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
-                />
-                <label htmlFor="isActiveToggle" className="text-xs font-medium text-slate-700 cursor-pointer">
-                  Publish to Student Portal (Active)
-                </label>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
+              {/* Form Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-100">
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 disabled:opacity-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-brand-100 transition-all disabled:opacity-50"
                 >
-                  {isSaving && <Loader2 size={14} className="animate-spin" />}
-                  <span>{isEditing ? "Update Internship" : "Create Internship"}</span>
+                  <Save size={20} />
+                  {isEditing ? "Update Internship Data" : "Publish Internship Now"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setShowForm(false);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold py-4 px-8 rounded-xl transition-all"
+                >
+                  <X size={20} />
+                  Cancel
                 </button>
               </div>
             </form>
@@ -777,40 +504,279 @@ export default function Internships() {
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
-      {deleteModalOpen && itemToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-100">
-            <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} />
+      {/* LIST SECTION (Matches Course Management Table) */}
+      {!showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in">
+          {/* List Header Bar */}
+          <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/30">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-brand-50 rounded-xl text-brand-600">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">Available Internships</h2>
+                  <p className="text-sm text-slate-500">Manage {internships.length} internship tracks efficiently</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
+                {/* Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search Title or Skills..."
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50"
+                  />
+                </div>
+
+                {/* Domain / Category Filter */}
+                <div className="relative w-full sm:w-56">
+                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none transition-all hover:bg-slate-50 appearance-none"
+                  >
+                    <option value="All">All Domains</option>
+                    {domainOptions.map((dom) => (
+                      <option key={dom} value={dom}>
+                        {dom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-slate-800 text-center">Delete Internship Course?</h3>
-            <p className="text-xs text-slate-500 text-center mt-1">
-              Are you sure you want to delete <span className="font-semibold text-slate-700">"{itemToDelete.title}"</span>? This action cannot be undone.
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Cover</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Internship Program</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Domain</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Duration / Mode</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Skills Covered</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Syllabus PDF</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="p-12 text-center text-slate-400">
+                      <Loader2 className="animate-spin text-brand-600 mx-auto mb-3" size={32} />
+                      <p className="text-sm font-medium">Loading internship tracks...</p>
+                    </td>
+                  </tr>
+                ) : paginatedList.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-12 text-center text-slate-400">
+                      <GraduationCap className="mx-auto mb-3 text-slate-300" size={44} />
+                      <p className="text-base font-semibold text-slate-700">No internship programs found</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {search || selectedCategory !== "All"
+                          ? "Try adjusting your search query or domain filter"
+                          : "Click 'Add New Internship' to create your first program"}
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedList.map((item) => {
+                    const pdfUrl = item.syllabus_pdf_url || item.syllabus_pdf;
+                    const coverUrl = item.image_url || item.image;
+                    const skills = Array.isArray(item.skills) ? item.skills : [];
+
+                    return (
+                      <tr key={item._id || item.id} className="hover:bg-slate-50/50 transition-colors group">
+                        {/* Cover Image */}
+                        <td className="px-6 py-4">
+                          <div className="w-20 h-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 shadow-sm transition-transform group-hover:scale-105">
+                            {coverUrl ? (
+                              <img
+                                src={getImgUrl(coverUrl)}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <BookOpen className="w-5 h-5 text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Title & Status */}
+                        <td className="px-6 py-4">
+                          <div className="max-w-[280px]">
+                            <p className="text-sm font-bold text-slate-800 line-clamp-1 mb-1">{item.title}</p>
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${
+                                item.isActive
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                  : "bg-slate-100 text-slate-500 border border-slate-200"
+                              }`}
+                            >
+                              {item.isActive ? "Active Track" : "Draft"}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Domain / Category Badge */}
+                        <td className="px-6 py-4">
+                          <span className="px-2.5 py-1 bg-brand-50 text-brand-700 text-[10px] font-bold rounded-lg uppercase tracking-wider border border-brand-100">
+                            {item.category || "General"}
+                          </span>
+                        </td>
+
+                        {/* Duration / Mode */}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-black text-brand-600 tracking-tight">{item.duration}</span>
+                            <span className="text-[11px] font-bold text-slate-400">{item.mode}</span>
+                          </div>
+                        </td>
+
+                        {/* Skills Chips */}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-1 max-w-[240px]">
+                            {skills.length > 0 ? (
+                              skills.slice(0, 3).map((s, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md"
+                                >
+                                  {s}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">No skills specified</span>
+                            )}
+                            {skills.length > 3 && (
+                              <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-md">
+                                +{skills.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Syllabus PDF Link */}
+                        <td className="px-6 py-4">
+                          {pdfUrl ? (
+                            <a
+                              href={getImgUrl(pdfUrl)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold rounded-lg border border-brand-200 transition-all shadow-xs"
+                            >
+                              <FileText size={14} />
+                              <span>View PDF</span>
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Not Uploaded</span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all"
+                              title="Edit Internship"
+                            >
+                              <Edit2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item._id || item.id)}
+                              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                              title="Delete Internship"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Footer (Matches Course Management) */}
+          <div className="p-6 md:p-8 bg-slate-50/30 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <p className="text-sm text-slate-500 font-medium tracking-tight order-2 sm:order-1">
+              Showing{" "}
+              <span className="text-slate-900 font-bold">
+                {totalFiltered === 0 ? 0 : (page - 1) * itemsPerPage + 1}–
+                {Math.min(page * itemsPerPage, totalFiltered)}
+              </span>{" "}
+              of <span className="text-slate-900 font-bold">{totalFiltered}</span> internships
             </p>
 
-            <div className="flex items-center justify-center gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-md shadow-red-600/20 disabled:opacity-50 transition-all"
-              >
-                {isDeleting && <Loader2 size={14} className="animate-spin" />}
-                <span>Delete Program</span>
-              </button>
-            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm order-1 sm:order-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {[...Array(totalPages)].map((_, i) => {
+                    const p = i + 1;
+                    if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => setPage(p)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                            page === p
+                              ? "bg-brand-600 text-white shadow-md shadow-brand-100"
+                              : "text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    } else if (p === page - 2 || p === page + 2) {
+                      return (
+                        <span key={p} className="px-1 text-slate-300">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 }
-
