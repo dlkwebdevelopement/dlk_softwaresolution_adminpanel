@@ -164,3 +164,9 @@ export const ADMIN_DELETE_OFFICE_GALLERY_CATEGORY = (batchId, catId) => `/admin/
 export const ADMIN_ADD_OFFICE_CATEGORY_IMAGES = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/images`;
 export const ADMIN_DELETE_OFFICE_CATEGORY_IMAGE = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/image`;
 export const ADMIN_UPDATE_OFFICE_CATEGORY_IMAGE_HIGHLIGHTS = (batchId, catId) => `/admin/office-gallery/${batchId}/categories/${catId}/image/highlights`;
+
+// 🎓 Internships
+export const ADMIN_GET_INTERNSHIPS = "/admin/internships";
+export const ADMIN_POST_INTERNSHIP = "/admin/internships";
+export const ADMIN_UPDATE_INTERNSHIP = (id) => `/admin/internships/${id}`;
+export const ADMIN_DELETE_INTERNSHIP = (id) => `/admin/internships/${id}`;

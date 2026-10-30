@@ -168,13 +168,13 @@ const Contact = () => {
         replyMessage: replyMessage
       });
       
-      showToast("Reply sent to user inbox");
+      showToast("Email sent successfully!");
       setReplyMessage("");
       setShowReplyBox(false);
       fetchContacts();
       setSelectedContact(prev => ({...prev, isReply: true, isRead: true}));
     } catch (err) {
-      showToast("Send failed", "error");
+      showToast("Email not sent", "error");
     } finally {
       setIsSending(false);
     }

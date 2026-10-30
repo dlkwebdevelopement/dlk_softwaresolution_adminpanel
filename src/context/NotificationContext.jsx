@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { BASE_URL } from '../apis/api';
 
 const NotificationContext = createContext();
 
@@ -9,7 +10,7 @@ export const NotificationProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000'); // Update with your actual backend URL
+    const newSocket = io(BASE_URL); 
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

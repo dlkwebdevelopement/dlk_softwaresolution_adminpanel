@@ -12,6 +12,7 @@ import LiveClasses from "../../pages/admin/LiveClasses";
 import Blog from "../../pages/admin/Blog";
 import StudentProjects from "../../pages/admin/StudentProjects";
 import CourseDetails from "../../pages/adminCourse/CourseDetails";
+import Internships from "../../pages/admin/Internships";
 import Contact from "../../pages/adminContact/Contact";
 import Testimonials from "../../pages/admin/Testimonials";
 import GalleryManagement from "../../pages/admin/GalleryManagement.jsx";
@@ -123,6 +124,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <CourseDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/internships"
+        element={
+          <ProtectedRoute>
+            <Internships />
           </ProtectedRoute>
         }
       />

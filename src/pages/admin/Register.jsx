@@ -169,12 +169,12 @@ const Register = () => {
         replyMessage: replyMessage
       });
       
-      showToast("Update sent to student inbox");
+      showToast("Email sent successfully!");
       setReplyMessage("");
       fetchRegistrations();
       setSelectedStudent(prev => ({...prev, isReply: true, isRead: true}));
     } catch (err) {
-      showToast("Send failed", "error");
+      showToast("Email not sent", "error");
     } finally {
       setIsSending(false);
     }

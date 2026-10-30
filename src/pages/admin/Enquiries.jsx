@@ -172,12 +172,12 @@ const Enquiries = () => {
         replyMessage: replyMessage
       });
       
-      showToast("Reply dispatched");
+      showToast("Email sent successfully!");
       setReplyMessage("");
       fetchEnquiries();
       setSelectedEnquiry(prev => ({...prev, isReply: true, isRead: true}));
     } catch (err) {
-      showToast("Dispatch failed", "error");
+      showToast("Email not sent", "error");
     } finally {
       setIsSending(false);
     }
