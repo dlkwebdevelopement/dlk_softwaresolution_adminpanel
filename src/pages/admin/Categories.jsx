@@ -34,7 +34,7 @@ export default function Categories() {
   const [editFile, setEditFile] = useState(null);
   const fileInputRef = useRef(null);
   const editFileInputRef = useRef(null);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState("course");
   const [editDescription, setEditDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,7 +70,8 @@ export default function Categories() {
     if (!val.trim()) return;
     const formData = new FormData();
     formData.append("categoryName", val.trim());
-    formData.append("description", description.trim());
+    formData.append("description", description.trim() || "course");
+    formData.append("scope", description.trim() || "course");
 
     if (file) formData.append("image", file);
 
@@ -78,7 +79,7 @@ export default function Categories() {
       setIsProcessing(true);
       await PostRequest(ADMIN_CREATE_CATEGORY, formData, true);
       setVal("");
-      setDescription("");
+      setDescription("course");
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       showToast("Category registered successfully");
@@ -115,7 +116,8 @@ export default function Categories() {
     if (!editVal.trim()) return;
     const formData = new FormData();
     formData.append("categoryName", editVal.trim());
-    formData.append("description", editDescription.trim());
+    formData.append("description", editDescription.trim() || "course");
+    formData.append("scope", editDescription.trim() || "course");
 
     if (editFile) formData.append("image", editFile);
 
@@ -301,7 +303,7 @@ export default function Categories() {
                             />
                           ) : (
                             <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-sm line-clamp-2" title={c.description}>
-                              {c.description || <span className="text-slate-200 italic font-black text-[9px] uppercase tracking-widest">No Descriptive Metadata</span>}
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 capitalize border border-slate-200">{c.scope || c.description || "course"}</span>
                             </p>
                           )}
                         </td>
@@ -313,7 +315,7 @@ export default function Categories() {
                             </div>
                           ) : (
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => startEdit(c.id, c.categoryName, c.description)} className="p-2 bg-slate-50 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg transition-all border border-slate-100 shadow-xs"><Edit2 size={16}/></button>
+                              <button onClick={() => startEdit(c.id, c.categoryName, c.description, c.scope)} className="p-2 bg-slate-50 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg transition-all border border-slate-100 shadow-xs"><Edit2 size={16}/></button>
                               <button onClick={() => removeCategory(c.id)} className="p-2 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-white rounded-lg transition-all border border-slate-100 shadow-xs"><Trash2 size={16}/></button>
                             </div>
                           )}
