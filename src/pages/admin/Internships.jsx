@@ -154,7 +154,8 @@ export default function Internships() {
 
   const domainOptions = useMemo(() => {
     const fromTerminal = internshipCategories.map((c) => c.categoryName);
-    return Array.from(new Set([...fromTerminal, ...DEFAULT_DOMAIN_OPTIONS]));
+    const combined = Array.from(new Set([...fromTerminal, ...DEFAULT_DOMAIN_OPTIONS]));
+    return combined.sort((a, b) => a.localeCompare(b));
   }, [internshipCategories]);
 
   const resetForm = () => {

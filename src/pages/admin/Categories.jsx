@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   Trash2,
   Edit2,
@@ -10,7 +10,8 @@ import {
   Plus,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react";
 import {
   GetRequest,
@@ -38,6 +39,26 @@ export default function Categories() {
   const [editDescription, setEditDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [scopeFilter, setScopeFilter] = useState("all"); // 'all' | 'course' | 'internship'
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const courseCount = useMemo(() => {
+    return list.filter((c) => (c.scope || c.description) !== "internship").length;
+  }, [list]);
+
+  const internshipCount = useMemo(() => {
+    return list.filter((c) => (c.scope || c.description) === "internship").length;
+  }, [list]);
+
+  const filteredList = useMemo(() => {
+    return list.filter((c) => {
+      const scope = (c.scope || c.description || "course").toLowerCase();
+      const matchesScope = scopeFilter === "all" ? true : scope === scopeFilter;
+      const name = (c.categoryName || c.category || "").toLowerCase();
+      const matchesSearch = searchQuery.trim() === "" ? true : name.includes(searchQuery.toLowerCase());
+      return matchesScope && matchesSearch;
+    });
+  }, [list, scopeFilter, searchQuery]);
 
   const [toast, setToast] = useState({
     show: false,
@@ -226,10 +247,60 @@ export default function Categories() {
         {/* Right: Category Table */}
         <div className="lg:col-span-3">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+            <div className="p-5 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                Network Registry <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded-lg text-[10px]">{list.length} Records</span>
+                Network Registry <span className="bg-slate-100 text-slate-400 px-2 py-0.5 rounded-lg text-[10px]">{filteredList.length} / {list.length} Records</span>
               </h2>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search category..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 text-slate-800 font-medium w-40 sm:w-48"
+                  />
+                </div>
+
+                {/* Scope Filter Tabs */}
+                <div className="flex items-center bg-slate-100/80 p-1 rounded-xl text-xs font-bold">
+                  <button
+                    onClick={() => setScopeFilter("all")}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      scopeFilter === "all"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    All ({list.length})
+                  </button>
+                  <button
+                    onClick={() => setScopeFilter("course")}
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                      scopeFilter === "course"
+                        ? "bg-white text-emerald-700 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Courses ({courseCount})
+                  </button>
+                  <button
+                    onClick={() => setScopeFilter("internship")}
+                    className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                      scopeFilter === "internship"
+                        ? "bg-white text-purple-700 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                    Internships ({internshipCount})
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -248,12 +319,12 @@ export default function Categories() {
                         <Loader2 className="w-8 h-8 animate-spin text-brand-500 mx-auto" />
                       </td>
                     </tr>
-                  ) : list.length === 0 ? (
+                  ) : filteredList.length === 0 ? (
                     <tr>
                       <td colSpan={3} className="px-6 py-20 text-center text-slate-300 font-black uppercase text-[10px] tracking-[0.2em] italic">No Protocol Segments Detected</td>
                     </tr>
                   ) : (
-                    list.map((c) => (
+                    filteredList.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50/80 transition-all group">
                         <td className="px-6 py-4">
                           {editingId === c.id ? (
